@@ -21,15 +21,11 @@ function GetTransform( positionX, positionY, rotation, scale )
 	let translationMatrix = Array(0, 0, 0, 0, 0, 0, positionX, positionY, 0); 
 
 	for (let j = 0; j < transformationMatrix.length/3; j++){
-	for (let i = 0 ; i < transformationMatrix.length ; i+=3){
+		for (let i = 0 ; i < transformationMatrix.length ; i+=3){
 
-		//	console.log(" j "+ j, " i ", i, " j+3 ", j+3, " i+1 ", i+1, " j+6 ", j+6, " i+2 ", i+2);
-			//console.log('i + j ', i+j);
-			//console.log('translationMatrix[i+j] ', translationMatrix[i+j]);
 			transformationMatrix[j+i] = (rotationMatrix[j] * scaleMatrix[i] + rotationMatrix[j+3] * scaleMatrix[i+1] + rotationMatrix[j+6] * scaleMatrix[i+2]) + translationMatrix[i+j];
 		}
 	}
-	console.log('transformationMatrix ', transformationMatrix);
 
 	return transformationMatrix;
 }
@@ -40,16 +36,13 @@ function GetTransform( positionX, positionY, rotation, scale )
 function ApplyTransform( trans1, trans2 )
 {
 	let transformationMatrix = Array( 1, 0, 0, 0, 1, 0, 0, 0, 1);
-	console.log('trans1 ', trans1);
-	console.log('trans2 ', trans2);
+
 	for (let j = 0; j < transformationMatrix.length/3; j++){
 		for (let i = 0 ; i < transformationMatrix.length ; i+=3){
 	
-				//console.log(" j "+ j, " i ", i, " j+3 ", j+3, " i+1 ", i+1, " j+6 ", j+6, " i+2 ", i+2);
-				//console.log('i + j ', i+j);
 				transformationMatrix[j+i] = (trans2[j] * trans1[i] + trans2[j+3] * trans1[i+1] + trans2[j+6] * trans1[i+2]); 
 			}
 		}
-	console.log('transformationMatrix FINALE', transformationMatrix);
+
 	return transformationMatrix;
 }
