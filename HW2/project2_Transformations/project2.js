@@ -8,26 +8,33 @@ function GetTransform( positionX, positionY, rotation, scale )
 	rotation = rotation * Math.PI / 180;
 
 	// 0, 3, 6, 1, 4, 7, 2, 5, 8
-	let transformationMatrix = Array( 1, 0, 0, 0, 1, 0, 0, 0, 1);
+	let transformationMatrix = Array(1, 0, 0, 
+									0, 1, 0,
+									0, 0, 1);
 	
 	// Scale 
-	let scaleMatrix = Array( scale, 0 , 0, 0, scale, 0, 0, 0, 1 );
+	let scaleMatrix = Array( scale, 0 , 0,
+							0, scale, 0, 
+							0, 0, 1 );
 	
 	// Rotation
-	let rotationMatrix = Array( Math.cos(rotation), Math.sin(rotation), 0, -Math.sin(rotation), Math.cos(rotation), 0, 0, 0, 1); 
+	let rotationMatrix = Array( Math.cos(rotation), Math.sin(rotation), 0,
+								-Math.sin(rotation), Math.cos(rotation), 0, 
+								0, 0, 1); 
 	
 	// Translation 
 	// the last element is 0 for direction vector
-	let translationMatrix = Array(0, 0, 0, 0, 0, 0, positionX, positionY, 0); 
+	let translationMatrix = Array(1, 0, 0,
+								0, 1, 0, 
+								positionX, positionY, 1);
 
-	for (let j = 0; j < transformationMatrix.length/3; j++){
-		for (let i = 0 ; i < transformationMatrix.length ; i+=3){
+	scaledMatrix = ApplyTransform(transformationMatrix, scaleMatrix); 
 
-			transformationMatrix[j+i] = (rotationMatrix[j] * scaleMatrix[i] + rotationMatrix[j+3] * scaleMatrix[i+1] + rotationMatrix[j+6] * scaleMatrix[i+2]) + translationMatrix[i+j];
-		}
-	}
+	rotatedMatrix = ApplyTransform(scaledMatrix ,rotationMatrix);
 
-	return transformationMatrix;
+	finalMatrix = ApplyTransform(rotatedMatrix ,translationMatrix);
+
+	return finalMatrix;
 }
 
 // Returns a 3x3 transformation matrix as an array of 9 values in column-major order.
@@ -35,7 +42,9 @@ function GetTransform( positionX, positionY, rotation, scale )
 // The returned transformation first applies trans1 and then trans2.
 function ApplyTransform( trans1, trans2 )
 {
-	let transformationMatrix = Array( 1, 0, 0, 0, 1, 0, 0, 0, 1);
+	let transformationMatrix = Array( 1, 0, 0,
+										0, 1, 0,
+										0, 0, 1);
 
 	for (let j = 0; j < transformationMatrix.length/3; j++){
 		for (let i = 0 ; i < transformationMatrix.length ; i+=3){
