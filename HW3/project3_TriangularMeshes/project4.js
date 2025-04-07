@@ -7,9 +7,9 @@
 function GetModelViewProjection( projectionMatrix, translationX, translationY, translationZ, rotationX, rotationY )
 {
 	var trans = [
-		0, 0, 0, 0,
-		0, 0, 0, 0,
-		0, 0, 0, 0,
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
 		translationX, translationY, translationZ, 1
 	];
 	//trans = BuildIdentityMatrixColumnMajor(4);
@@ -26,27 +26,17 @@ function GetModelViewProjection( projectionMatrix, translationX, translationY, t
 								0, 0, 0, 1); 
 
 
-	//let rotationMatrix= ApplyTransform( rotationYMatrix, rotationXMatrix );
+	let rotatedMatrix = MatrixMult(rotationXMatrix, rotationYMatrix); 
 
-	let rotationMatrix = MatrixMult(rotationYMatrix, rotationXMatrix ); 
-
-	// Removed unused transformationMatrix variable to clean up the	let  transformationMatrix=  BuildIdentityMatrixColumnMajor(4);
-
-	let mvp = BuildIdentityMatrixColumnMajor(4);
-
-	mvp = intermediate.map((value, index) => value + trans[index]);
-
-	// //mvp = MatrixMult( trans,intermediate); 
-	// for (let j = 0; j < transformationMatrix.length/4; j++){
-	// 	for (let i = 0 ; i < transformationMatrix.length ; i+=4){
+	let intermediateMatrix = MatrixMult(trans, rotatedMatrix);
  
-	// 		mvp[j+i] = (intermediate[j] * transformationMatrix[i] + intermediate[j+4] * transformationMatrix[i+1] + intermediate[j+4] * transformationMatrix[i+2] +  intermediate[j+8] * transformationMatrix[i+3]) + trans[i+j];
-	// 	} 
-	// }
+	let mvp = MatrixMult(projectionMatrix, intermediateMatrix);
 
 
 	return mvp;
 }
+
+
 function BuildIdentityMatrixColumnMajor(size) {
     let identityMatrix = [];
     for (let col = 0; col < size; col++) {
@@ -56,21 +46,6 @@ function BuildIdentityMatrixColumnMajor(size) {
     }
     return identityMatrix;
 }
-
-
-function ApplyTransform( trans1, trans2 )
-{
-	let transformationMatrix =  BuildIdentityMatrixColumnMajor(4);
-
-	for (let j = 0; j < transformationMatrix.length/4; j++){
-		for (let i = 0 ; i < transformationMatrix.length ; i+=4){
-	
-				transformationMatrix[j+i] = (trans2[j] * trans1[i] + trans2[j+3] * trans1[i+1] + trans2[j+6] * trans1[i+2] + trans2[j+9] * trans1[i+3]); 
-			}
-		}
-
-	return transformationMatrix;
-} 
 
 
 // [TO-DO] Complete the implementation of the following class.
