@@ -12,7 +12,6 @@ function GetModelViewProjection( projectionMatrix, translationX, translationY, t
 		0, 0, 1, 0,
 		translationX, translationY, translationZ, 1
 	];
-	//trans = BuildIdentityMatrixColumnMajor(4);
 
 	// Rotation x
 	let rotationXMatrix = Array( 1, 0, 0, 0, 
@@ -32,19 +31,7 @@ function GetModelViewProjection( projectionMatrix, translationX, translationY, t
  
 	let mvp = MatrixMult(projectionMatrix, intermediateMatrix);
 
-
 	return mvp;
-}
-
-
-function BuildIdentityMatrixColumnMajor(size) {
-    let identityMatrix = [];
-    for (let col = 0; col < size; col++) {
-        for (let row = 0; row < size; row++) {
-            identityMatrix.push(row === col ? 1 : 0);
-        }
-    }
-    return identityMatrix;
 }
 
 
@@ -114,6 +101,6 @@ class MeshDrawer
 	}
 	
 }
-// module.exports = {
-//     BuildIdentityMatrixColumnMajor
-// };
+module.exports = {
+    test
+};
