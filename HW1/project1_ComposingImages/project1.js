@@ -59,11 +59,11 @@ function composite(bgImg, fgImg, fgOpac, fgPos) {
                 bgImg.data[indexBg + 3] =  blendedAlpha * 255; 
                 
                 // Red 
-                bgImg.data[indexBg] = ((fgRed * fgAlpha * fgOpac) + (1 - fgAlpha * fgOpac) + bgAlpha *  bgImg.data[indexBg])/ blendedAlpha ; 
+                bgImg.data[indexBg] = ((fgRed * fgAlpha * fgOpac) + (1 - fgAlpha * fgOpac) * bgAlpha *  bgImg.data[indexBg])/ blendedAlpha ; 
                 // Green
-                bgImg.data[indexBg + 1] = ((fgGreen * fgAlpha * fgOpac) + (1 - fgAlpha * fgOpac) + bgAlpha *  bgImg.data[indexBg + 1])/ blendedAlpha ; 
+                bgImg.data[indexBg + 1] = ((fgGreen * fgAlpha * fgOpac) + (1 - fgAlpha * fgOpac) * bgAlpha *  bgImg.data[indexBg + 1])/ blendedAlpha ; 
                 // Blue
-                bgImg.data[indexBg + 2] = ((fgBlue * fgAlpha * fgOpac) + (1 - fgAlpha * fgOpac) + bgAlpha *  bgImg.data[indexBg + 2])/ blendedAlpha ; 
+                bgImg.data[indexBg + 2] = ((fgBlue * fgAlpha * fgOpac) + (1 - fgAlpha * fgOpac) * bgAlpha *  bgImg.data[indexBg + 2])/ blendedAlpha ; 
             
             }
 
