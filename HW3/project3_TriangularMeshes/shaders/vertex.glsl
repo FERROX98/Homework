@@ -1,11 +1,12 @@
 attribute vec3 pos;
 attribute vec4 clr;
+attribute vec2 textureCoords;
+
 
 uniform mat4 trans;
 
-varying vec4 vcolor;
-
 uniform bool flgSwap; 
+varying vec2 texCoords;
 
 void main()
 {
@@ -19,5 +20,6 @@ void main()
 
     }
 
-    vcolor = clr;
+    texCoords = textureCoords;
+
 }

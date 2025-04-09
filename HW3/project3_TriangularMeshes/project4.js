@@ -126,18 +126,18 @@ class MeshDrawer
 			// buffer 
 			this.position_buffer = gl.createBuffer();
 			this.text_coord_buffer = gl.createBuffer();
-			this.text_buffer = gl.createBuffer();
 
-			// vertex shader attributes
+			// vertex
 			this.pos = gl.getAttribLocation(this.prog, 'pos');
 			this.trans = gl.getUniformLocation(this.prog, 'trans');
-			this.clr = gl.getAttribLocation(this.prog, 'clr');
-			this.vcolor = gl.getAttribLocation(this.prog, 'vcolor');
+			this.textureCoords = gl.getAttribLocation(this.prog, 'textureCoords');
 			this.flgSwap = gl.getUniformLocation(this.prog, 'flgSwap');
 
-			// frgment 
+			// fragment 
 			this.flgShowTexture = gl.getUniformLocation(this.prog, 'flgShowTexture');
+			this.textureSampler = gl.getUniformLocation(this.prog, 'textureSampler');
 
+			// init some uniforms
 			gl.useProgram(this.prog);
 			gl.uniform1i(this.flgShowTexture, true);
 			gl.uniform1i(this.flgSwap, false);
@@ -226,8 +226,8 @@ class MeshDrawer
 
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.text_coord_buffer);
-		gl.vertexAttribPointer(this.clr, 4, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(this.clr);
+		gl.vertexAttribPointer(this.textureCoords, 2, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(this.textureCoords);
 
 
 		gl.drawArrays( gl.TRIANGLES, 0, this.numTriangles ); 
@@ -237,13 +237,21 @@ class MeshDrawer
 	// The argument is an HTML IMG element containing the texture data.
 	setTexture( img )
 	{
-		// [TO-DO] Bind the texture
 
+		gl.useProgram(this.prog);
+
+		// [TO-DO] Bind the texture
+		const texture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, texture);
 		// You can set the texture image data using the following command.
 		gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img );
+		gl.generateMipmap(gl.TEXTURE_2D);		
 
 		// [TO-DO] Now that we have a texture, it might be a good idea to set
 		// some uniform parameter(s) of the fragment shader, so that it uses the texture.
+		gl.activeTexture(gl.TEXTURE0); 
+
+		gl.uniform1i(this.textureSampler, 0); 
 	}
 	
 	// This method is called when the user changes the state of the
