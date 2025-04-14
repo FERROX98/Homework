@@ -127,12 +127,6 @@ class MeshDrawer
 
 		});
  
-	
-
-	//	gl.bindBuffer(gl.ARRAY_BUFFER, this.color_buffer);
-
-		//this.mvp = gl.getUniformLocation(this.prog, "mvp");
-
 	}
 	async initialize() {
         try {
