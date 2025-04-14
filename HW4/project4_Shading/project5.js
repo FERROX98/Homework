@@ -11,10 +11,42 @@ function GetModelViewMatrix( translationX, translationY, translationZ, rotationX
 		0, 0, 1, 0,
 		translationX, translationY, translationZ, 1
 	];
-	var mv = trans;
-	return mv;
+
+	// Rotation x
+	let rotationXMatrix = Array( 1, 0, 0, 0, 
+								0, Math.cos(rotationX), Math.sin(rotationX), 0,
+								0, -Math.sin(rotationX), Math.cos(rotationX), 0,
+								0, 0, 0, 1); 
+	// Rotation Y
+	let rotationYMatrix = Array( Math.cos(rotationY), 0, -Math.sin(rotationY), 0,
+								0, 1, 0, 0,
+								Math.sin(rotationY), 0, Math.cos(rotationY), 0,
+								0, 0, 0, 1); 
+
+
+	let rotatedMatrix = MatrixMult(rotationYMatrix, rotationXMatrix); 
+
+	let intermediateMatrix = MatrixMult(trans, rotatedMatrix);
+ 
+	let mvp = MatrixMult(projectionMatrix, intermediateMatrix);
+
+	return mvp;
 }
 
+
+async function InitShaderProg()
+{
+	// Helper function to load shader files
+    async function loadShaderFile(url) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
+            return await response.text();
+        } catch (error) {
+            console.error('Error loading shader:', error);
+            return null;
+        }
+    }
 
 // [TO-DO] Complete the implementation of the following class.
 

@@ -58,24 +58,7 @@ async function InitShaderProg()
 
     const fs_source = await loadShaderFile("shaders/fragment.glsl");
 	console.log("Founded fragment shader source code");
-	
-	// Vertex shader source code
-	// var vs_source = `
-	// attribute vec3 pos;
-	// uniform mat4 mvp;
-	// void main()
-	// {
-	// 	gl_Position = mvp * vec4(pos,1);
-	// }
-	// `;
-	// // Fragment shader source code
-	// var fs_source = `
-	// precision mediump float;
-	// void main()
-	// {
-	// 	gl_FragColor = vec4(1,1,1,1);
-	// }
-	// `;
+
     if (!vs_source || !fs_source) return null;
 
 	const vs = gl.createShader(gl.VERTEX_SHADER);
