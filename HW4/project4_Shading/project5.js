@@ -28,9 +28,9 @@ function GetModelViewMatrix( translationX, translationY, translationZ, rotationX
 
 	let intermediateMatrix = MatrixMult(trans, rotatedMatrix);
  
-	let mvp = MatrixMult(projectionMatrix, intermediateMatrix);
+	//let mvp = MatrixMult(projectionMatrix, intermediateMatrix);
 
-	return mvp;
+	return intermediateMatrix;
 }
 
 
@@ -97,23 +97,25 @@ class MeshDrawer
 	// The constructor is a good place for taking care of the necessary initializations.
 	constructor()
 	{
-		//this.mvpMatrix = mvp; 
-		//InitShaderProg().then(prog => this.prog = prog);
 		this.initialize().then(() => {
 			console.log("Shader program initialized");
 			// buffer 
-			this.position_buffer = gl.createBuffer();
-			this.text_coord_buffer = gl.createBuffer();
+			this.positionBuffer = gl.createBuffer();
+			this.textCoordBuffer = gl.createBuffer();
+			this.normalBuffer = gl.createBuffer();
 
 			// vertex
 			this.pos = gl.getAttribLocation(this.prog, 'pos');
-			this.trans = gl.getUniformLocation(this.prog, 'trans');
+			this.matrixMVP = gl.getUniformLocation(this.prog, 'matrixMVP');
 			this.textureCoords = gl.getAttribLocation(this.prog, 'textureCoords');
 			this.flgSwap = gl.getUniformLocation(this.prog, 'flgSwap');
 
 			// fragment 
 			this.flgShowTexture = gl.getUniformLocation(this.prog, 'flgShowTexture');
 			this.textureSampler = gl.getUniformLocation(this.prog, 'textureSampler');
+			this.normalMV = gl.getUniformLocation(this.prog, 'normalMV');
+			this.normals = gl.getAttribLocation(this.prog, 'normals');
+
 
 			// init some uniforms
 			gl.useProgram(this.prog);
@@ -122,7 +124,9 @@ class MeshDrawer
 
 		});
  
-	}async initialize() {
+	}
+	
+	async initialize() {
         try {
             this.prog = await InitShaderProg();
             if (!this.prog) {
@@ -138,7 +142,7 @@ class MeshDrawer
 	// an array of 2D texture coordinates, and an array of vertex normals.
 	// Every item in these arrays is a floating point value, representing one
 	// coordinate of the vertex position or texture coordinate.
-	// Every three consecutive elements in the vertPos array forms one vertex
+	// Every three ocnsecutive elements in the vertPos array forms one vertex
 	// position and every three consecutive vertex positions form a triangle.
 	// Similarly, every two consecutive elements in the texCoords array
 	// form the texture coordinate of a vertex and every three consecutive 
@@ -147,13 +151,15 @@ class MeshDrawer
 	setMesh( vertPos, texCoords, normals )
 	{
 		// Set all data and send to gpu 
-
 		// Bind and send to gpu 
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.position_buffer);
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertPos), gl.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.text_coord_buffer);
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.textCoordBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+		
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
 		this.numTriangles = vertPos.length /3;
 	}
@@ -166,7 +172,8 @@ class MeshDrawer
 		console.log("swap", swap);
 
 		gl.useProgram(this.prog);
-		gl.uniform1i(this.flgSwap, swap); 	}
+		gl.uniform1i(this.flgSwap, swap); 
+	}
 	// This method is called to draw the triangular mesh.
 	// The arguments are the model-view-projection transformation matrixMVP,
 	// the model-view transformation matrixMV, the same matrix returned
@@ -183,20 +190,28 @@ class MeshDrawer
 
 		gl.clear(gl.COLOR_BUFFER_BIT );
 		gl.useProgram( this.prog ); 
+		
+		let shadingTransformation = MatrixMult(matrixMV, matrixNormal); 
 
 		
 		// Since it is constant across all vertices is not necessary to bind
-		gl.uniformMatrix4fv( this.trans, false, trans)
+		gl.uniformMatrix4fv( this.matrixMVP, false, matrixMVP)
+		gl.uniformMatrix4fv( this.normalMV, false, shadingTransformation)
 
 		//bind (select which buffer to use/interpret)
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.position_buffer);
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
 		// Say for each tuple of 3 element store in pos and run in parallel vertex shader main()
 		gl.vertexAttribPointer(this.pos, 3, gl.FLOAT, false, 0, 0);
 		// say pull data from buffer how indicated above
 		gl.enableVertexAttribArray(this.pos);
 
+		
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+		gl.vertexAttribPointer(this.normals, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(this.normals);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.text_coord_buffer);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.textCoordBuffer);
 		gl.vertexAttribPointer(this.textureCoords, 2, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(this.textureCoords);
 
@@ -212,14 +227,15 @@ class MeshDrawer
 
 		// [TO-DO] Bind the texture
 		const texture = gl.createTexture();
+		gl.activeTexture(gl.TEXTURE0); 
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 		// You can set the texture image data using the following command.
 		gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img );
 		gl.generateMipmap(gl.TEXTURE_2D);		
-
+		
+		
 		// [TO-DO] Now that we have a texture, it might be a good idea to set
 		// some uniform parameter(s) of the fragment shader, so that it uses the texture.
-		gl.activeTexture(gl.TEXTURE0); 
 
 		gl.uniform1i(this.textureSampler, 0); 
 	}

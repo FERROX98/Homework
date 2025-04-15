@@ -102,8 +102,6 @@ class MeshDrawer
 	// The constructor is a good place for taking care of the necessary initializations.
 	constructor()
 	{
-		//this.mvpMatrix = mvp; 
-		//InitShaderProg().then(prog => this.prog = prog);
 		this.initialize().then(() => {
 			console.log("Shader program initialized");
 			// buffer 
@@ -190,15 +188,12 @@ class MeshDrawer
 		gl.clear(gl.COLOR_BUFFER_BIT );
 		gl.useProgram( this.prog ); 
 
-		
 		// Since it is constant across all vertices is not necessary to bind
 		gl.uniformMatrix4fv( this.trans, false, trans)
 
 		//bind (select which buffer to use/interpret)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.position_buffer);
-		// Say for each tuple of 3 element store in pos and run in parallel vertex shader main()
 		gl.vertexAttribPointer(this.pos, 3, gl.FLOAT, false, 0, 0);
-		// say pull data from buffer how indicated above
 		gl.enableVertexAttribArray(this.pos);
 
 
@@ -219,6 +214,7 @@ class MeshDrawer
 
 		// [TO-DO] Bind the texture
 		const texture = gl.createTexture();
+		gl.activeTexture(gl.TEXTURE0); 
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 		// You can set the texture image data using the following command.
 		gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img );
