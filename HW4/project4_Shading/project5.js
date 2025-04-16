@@ -28,11 +28,9 @@ function GetModelViewMatrix( translationX, translationY, translationZ, rotationX
 
 	let intermediateMatrix = MatrixMult(trans, rotatedMatrix);
  
-	//let mvp = MatrixMult(projectionMatrix, intermediateMatrix);
-
 	return intermediateMatrix;
 }
-
+ 
 
 async function InitShaderProg()
 {
@@ -109,18 +107,26 @@ class MeshDrawer
 			this.matrixMVP = gl.getUniformLocation(this.prog, 'matrixMVP');
 			this.textureCoords = gl.getAttribLocation(this.prog, 'textureCoords');
 			this.flgSwap = gl.getUniformLocation(this.prog, 'flgSwap');
+			// vertex normal
+			this.normal = gl.getAttribLocation(this.prog, 'normal');
+			this.matrixMV = gl.getUniformLocation(this.prog, 'matrixMV');
+			this.invTranspMV = gl.getUniformLocation(this.prog, 'invTranspMV');
 
 			// fragment 
 			this.flgShowTexture = gl.getUniformLocation(this.prog, 'flgShowTexture');
 			this.textureSampler = gl.getUniformLocation(this.prog, 'textureSampler');
-			this.normalMV = gl.getUniformLocation(this.prog, 'normalMV');
-			this.normals = gl.getAttribLocation(this.prog, 'normals');
+			this.lightDirection = gl.getUniformLocation(this.prog, 'lightDirection');
+			this.shininess = gl.getUniformLocation(this.prog, 'shininess');
+
+			// fragment normal
+			//this.normal = gl.getAttribLocation(this.prog, 'normal');
 
 
 			// init some uniforms
 			gl.useProgram(this.prog);
 			gl.uniform1i(this.flgShowTexture, true);
 			gl.uniform1i(this.flgSwap, false);
+			gl.uniform1i(this.shininess, 100);
 
 		});
  
@@ -137,6 +143,7 @@ class MeshDrawer
             console.error("Initialization error:", error);
         }
 	}
+
 	// This method is called every time the user opens an OBJ file.
 	// The arguments of this function is an array of 3D vertex positions,
 	// an array of 2D texture coordinates, and an array of vertex normals.
@@ -170,10 +177,10 @@ class MeshDrawer
 	swapYZ( swap )
 	{
 		console.log("swap", swap);
-
 		gl.useProgram(this.prog);
 		gl.uniform1i(this.flgSwap, swap); 
 	}
+
 	// This method is called to draw the triangular mesh.
 	// The arguments are the model-view-projection transformation matrixMVP,
 	// the model-view transformation matrixMV, the same matrix returned
@@ -191,24 +198,21 @@ class MeshDrawer
 		gl.clear(gl.COLOR_BUFFER_BIT );
 		gl.useProgram( this.prog ); 
 		
-		let shadingTransformation = MatrixMult(matrixMV, matrixNormal); 
-
 		
 		// Since it is constant across all vertices is not necessary to bind
-		gl.uniformMatrix4fv( this.matrixMVP, false, matrixMVP)
-		gl.uniformMatrix4fv( this.normalMV, false, shadingTransformation)
+		gl.uniformMatrix4fv(this.matrixMVP, false, matrixMVP)
+		gl.uniformMatrix4fv(this.matrixMV, false, matrixMV)
+		gl.uniformMatrix3fv(this.invTranspMV, false, matrixNormal)
 
 		//bind (select which buffer to use/interpret)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-		// Say for each tuple of 3 element store in pos and run in parallel vertex shader main()
 		gl.vertexAttribPointer(this.pos, 3, gl.FLOAT, false, 0, 0);
-		// say pull data from buffer how indicated above
 		gl.enableVertexAttribArray(this.pos);
 
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-		gl.vertexAttribPointer(this.normals, 3, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(this.normals);
+		gl.vertexAttribPointer(this.normal, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(this.normal);
 
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.textCoordBuffer);
@@ -229,6 +233,8 @@ class MeshDrawer
 		const texture = gl.createTexture();
 		gl.activeTexture(gl.TEXTURE0); 
 		gl.bindTexture(gl.TEXTURE_2D, texture);
+
+
 		// You can set the texture image data using the following command.
 		gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img );
 		gl.generateMipmap(gl.TEXTURE_2D);		
@@ -256,11 +262,17 @@ class MeshDrawer
 	setLightDir( x, y, z )
 	{
 		// [TO-DO] set the uniform parameter(s) of the fragment shader to specify the light direction.
+		console.log("Light direction", x, y, z);
+		gl.useProgram(this.prog);
+		gl.uniform3f(this.lightDirection, x, y, z);
 	}
 	
 	// This method is called to set the shininess of the material
 	setShininess( shininess )
 	{
 		// [TO-DO] set the uniform parameter(s) of the fragment shader to specify the shininess.
+		console.log("Shininess", shininess);
+		gl.useProgram(this.prog);
+		gl.uniform1f(this.shininess, shininess);
 	}
 }
