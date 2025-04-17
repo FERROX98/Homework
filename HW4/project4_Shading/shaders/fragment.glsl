@@ -14,7 +14,7 @@ varying vec3 normalMVP;
 void main()
 {
     float lightIntensity = 1.0;
-    float ambientLightIntensity = 0.3;
+    float ambientLightIntensity = 0.05;
 
     vec4 lightColor = vec4(1.0);
     vec4 clr = vec4(1,1,1,1);
@@ -44,7 +44,7 @@ void main()
     vec4 specularTerm = lightIntensity * pow(cosPhi, shininess) * lightColor;
 
     // Ambient term
-    vec4 ambientTerm = lightIntensity * clr *  ambientLightIntensity;
+    vec4 ambientTerm = lightIntensity * lightColor *  ambientLightIntensity;
     
     gl_FragColor = ambientTerm + diffuseTerm + specularTerm;
     
