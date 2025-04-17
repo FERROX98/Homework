@@ -13,42 +13,40 @@ varying vec3 normalMVP;
 
 void main()
 {
+    float lightIntensity = 1.0;
+    float ambientLightIntensity = 0.3;
+
+    vec4 lightColor = vec4(1.0);
     vec4 clr = vec4(1,1,1,1);
+
     if (flgShowTexture)
     {
-        // compute shading interpolating normal (phong shading) then add reflection and shining 
         clr = texture2D(textureSampler, texCoords); 
-
     }
     else {    
         clr = vec4(1,gl_FragCoord.z*gl_FragCoord.z,0,1);
     }
 
     vec3 normalNormalized = normalize(normalMVP);
-    vec3 lightDirectionNormalized = normalize(-lightDirection);
+    vec3 lightDirectionNormalized = normalize(lightDirection);
     vec3 viewVectorNormalized = normalize(vec3(viewVector));
-
-
-    float lightIntensity = 1.0;
-    vec4 lightColor = vec4(1.0);
-
-    vec3 r = normalize(2.0 * dot(lightDirectionNormalized, normalNormalized) * normalNormalized - lightDirectionNormalized);
 
     vec3 h = normalize(lightDirectionNormalized + viewVectorNormalized);
 
     // dot product between two vectors will return the cosine of the angle statement is only true for unit vectors
+    // compute Geometry term
     float cosTheta =  max(0.0,dot(normalNormalized, lightDirectionNormalized));
-        
-    // TODO check if phi should be calculate differently wrt the slide
-     // compute phi  
+    // Diffuse term
+    vec4 diffuseTerm = lightIntensity * clr * cosTheta;
+    
     float cosPhi =  max(0.0,dot(h, normalNormalized));
+    // Specular term
+    vec4 specularTerm = lightIntensity * pow(cosPhi, shininess) * lightColor;
 
-    // Debugging: print values by encoding them into the color output
-    // Note: This is a common trick in GLSL since you can't directly print values.
-    // Uncomment the line below to visualize cosTheta or cosPhi for debugging.
-     //gl_FragColor = vec4(vec3(cosTheta), 1.0); // Visualize cosTheta
-    //gl_FragColor = vec4(vec3(cosPhi), 1.0);   // Visualize cosPhi
-    gl_FragColor = lightIntensity*((clr * cosTheta) + pow(cosPhi,shininess) * lightColor); 
+    // Ambient term
+    vec4 ambientTerm = lightIntensity * clr *  ambientLightIntensity;
+    
+    gl_FragColor = ambientTerm + diffuseTerm + specularTerm;
     
 }
 

@@ -15,16 +15,15 @@ varying vec4 viewVector;
 
 void main()
 {
+    vec3 newPos = pos;
+
     if (flgSwap)
     {
-        vec3 newPos = vec3(pos.x, pos.z, pos.y);
+        newPos = vec3(pos.x, pos.z, pos.y);
         // from world space to camera space
-        gl_Position = matrixMVP * vec4(newPos, 1.0);
 
-    } else {
-        gl_Position = matrixMVP * vec4(pos, 1.0);
-
-    }
+    } 
+    gl_Position = matrixMVP * vec4(newPos, 1.0);
 
     texCoords = textureCoords;
     // invTranspMV * normal

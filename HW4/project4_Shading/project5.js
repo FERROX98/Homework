@@ -126,7 +126,9 @@ class MeshDrawer
 			gl.useProgram(this.prog);
 			gl.uniform1i(this.flgShowTexture, true);
 			gl.uniform1i(this.flgSwap, false);
-			gl.uniform1i(this.shininess, 100);
+			gl.uniform1f(this.shininess, 100); 
+			gl.uniform3f(this.lightDirection, 0.0,0.0,-1.0);
+
 
 		});
  
@@ -209,15 +211,13 @@ class MeshDrawer
 		gl.vertexAttribPointer(this.pos, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(this.pos);
 
-		
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-		gl.vertexAttribPointer(this.normal, 3, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(this.normal);
-
-
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.textCoordBuffer);
 		gl.vertexAttribPointer(this.textureCoords, 2, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(this.textureCoords);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+		gl.vertexAttribPointer(this.normal, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(this.normal);
 
 
 		gl.drawArrays( gl.TRIANGLES, 0, this.numTriangles ); 
