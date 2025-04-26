@@ -9,7 +9,7 @@ uniform bool flgSwap;
 
 varying vec2 texCoords;
 varying vec3 normalMVP;
-varying vec4 viewVector;
+varying vec3 viewVector;
 
 
 
@@ -29,6 +29,8 @@ void main()
     // invTranspMV * normal
     normalMVP = invTranspMV * normal; 
     // MV * pos
-    viewVector = matrixMV * vec4(pos, 0.0);
+    viewVector = vec3( matrixMVP * vec4(newPos, 1.0));
+
+
 
 }

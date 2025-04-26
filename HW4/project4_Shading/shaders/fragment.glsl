@@ -7,7 +7,7 @@ uniform float shininess;
 
 
 varying vec2 texCoords;
-varying vec4 viewVector;
+varying vec3 viewVector;
 varying vec3 normalMVP;
 
 
@@ -29,7 +29,7 @@ void main()
 
     vec3 normalNormalized = normalize(normalMVP);
     vec3 lightDirectionNormalized = normalize(lightDirection);
-    vec3 viewVectorNormalized = normalize(vec3(viewVector));
+    vec3 viewVectorNormalized = normalize(-viewVector);
 
     vec3 h = normalize(lightDirectionNormalized + viewVectorNormalized);
 
