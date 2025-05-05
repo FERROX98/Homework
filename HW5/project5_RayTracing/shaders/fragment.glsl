@@ -59,11 +59,11 @@ vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 		d.pos = position;
 
 		HitInfo hit;
+		hit.t = -1e30;
 
 		if ( (IntersectRay( hit, d ) ) || (dot(normalNormalized, d.dir) == 0.0) ) {
 				color += ambientTerm; // shadowed
 		} else {
-			//dot product between the normal and view 
 			// TO-DO: If not shadowed, perform shading using the Blinn model
 
 			vec3 lightIntensity = lights[i].intensity;
@@ -94,11 +94,33 @@ vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 // Returns true if an intersection is found.
 bool IntersectRay( inout HitInfo hit, Ray ray )
 {
-	hit.t = 1e30;
 	bool foundHit = false;
 	for ( int i=0; i<NUM_SPHERES; ++i ) {
 		// TO-DO: Test for ray-sphere intersection
-		// TO-DO: If intersection is found, update the given HitInfo
+		Sphere sphere = spheres[i];
+		vec3 center = sphere.center;
+		float radius = sphere.radius;
+		vec3 oc = ray.pos - center;
+
+		float a = dot(ray.dir, ray.dir);
+		float b = 2.0 * dot(ray.dir, oc);
+		float c = dot(oc, oc) - radius * radius;
+
+		float discriminant = b * b - 4.0 * a * c;
+		if (discriminant >= 0.0) {
+			
+			foundHit = true;
+			float t = (-b - sqrt(discriminant)) / (2.0 * a);
+			if (t > hit.t) {
+				// TO-DO: If intersection is found, update the given HitInfo
+
+				hit.t = t;
+				hit.position = ray.pos + t * ray.dir;
+				// https://stackoverflow.com/questions/8024898/calculate-the-vertex-normals-of-a-sphere
+				hit.normal = normalize(hit.position - sphere.center); 
+				hit.mtl = sphere.mtl;
+			} 
+		}
 	}
 	return foundHit;
 }
