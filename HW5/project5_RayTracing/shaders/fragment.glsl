@@ -39,37 +39,32 @@ bool IntersectRay( inout HitInfo hit, Ray ray );
 vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 {
 
-	vec3 color = vec3(0,0,0);
+	vec3 color = vec3(0.0);
 
 	vec3 viewVectorNormalized = normalize(view);
 	vec3 normalNormalized = normalize(normal);
 
-	float ambientLightIntensity = 0.0055;
-	vec3 lightColor = vec3(1.0);
+	float ambientLightIntensity = 0.05;
 	float shininess = mtl.n;
 
   	// Ambient term
-	vec3 ambientTerm = mtl.k_d * lightColor *  ambientLightIntensity;
-
-	for ( int i=0; i<NUM_LIGHTS; ++i ) {
+	vec3 ambientTerm = mtl.k_d * ambientLightIntensity;
+	for ( int i=0; i<NUM_LIGHTS; ++i ) { 
 		
 		// Shadow ray 
 		Ray d;
 		d.dir = normalize( lights[i].position - position ); 
-		d.pos = position;
+		d.pos = position; 
 
 		HitInfo hit;
-		hit.t = -1e30;
 
-		if ( (IntersectRay( hit, d ) ) || (dot(normalNormalized, d.dir) == 0.0) ) {
+		if ( (IntersectRay( hit, d ) ) ) {
 				color += ambientTerm; // shadowed
 		} else {
 			// TO-DO: If not shadowed, perform shading using the Blinn model
 
-			vec3 lightIntensity = lights[i].intensity;
-			vec3 lightDirection = d.dir;
-			
-			vec3 lightDirectionNormalized = normalize(lightDirection);
+			vec3 lightIntensity = lights[i].intensity;			
+			vec3 lightDirectionNormalized = d.dir; 
 
 			// compute Geometry term
 			float cosTheta =  max(0.0,dot(normalNormalized, lightDirectionNormalized));
@@ -82,7 +77,7 @@ vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 			float cosPhi =  max(0.0,dot(h, normalNormalized));
 			vec3 specularTerm = lightIntensity *  mtl.k_s * pow(cosPhi, shininess);
 
-			color += (ambientTerm + diffuseTerm + specularTerm);	
+			color += ( ambientTerm + diffuseTerm + specularTerm);	
         }
 	}
 	return color;
@@ -94,30 +89,35 @@ vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 // Returns true if an intersection is found.
 bool IntersectRay( inout HitInfo hit, Ray ray )
 {
+	hit.t = 1e30;	
 	bool foundHit = false;
+	float bias = 0.0001;
+
 	for ( int i=0; i<NUM_SPHERES; ++i ) {
-		// TO-DO: Test for ray-sphere intersection
+		// TO-DO: Test for ray-sphere intersection 
 		Sphere sphere = spheres[i];
 		vec3 center = sphere.center;
 		float radius = sphere.radius;
 		vec3 oc = ray.pos - center;
 
 		float a = dot(ray.dir, ray.dir);
-		float b = 2.0 * dot(ray.dir, oc);
+		float b = dot(2.0 * ray.dir, oc);
 		float c = dot(oc, oc) - radius * radius;
 
 		float discriminant = b * b - 4.0 * a * c;
 		if (discriminant >= 0.0) {
 			
-			foundHit = true;
 			float t = (-b - sqrt(discriminant)) / (2.0 * a);
-			if (t > hit.t) {
+			// if the hit is in front of the ray and is closer enough (can be thought as the length of the ray)
+			if (t > bias && t <= hit.t) {
+						
+				foundHit = true;
 				// TO-DO: If intersection is found, update the given HitInfo
-
 				hit.t = t;
-				hit.position = ray.pos + t * ray.dir;
-				// https://stackoverflow.com/questions/8024898/calculate-the-vertex-normals-of-a-sphere
-				hit.normal = normalize(hit.position - sphere.center); 
+				vec3 x = ray.pos + t * ray.dir;
+				hit.position = x;
+				// knowing the center c i can calculate te normal vector at point x 
+				hit.normal = normalize((x - center)); 
 				hit.mtl = sphere.mtl;
 			} 
 		}
@@ -141,13 +141,23 @@ vec4 RayTracer( Ray ray )
 			if ( hit.mtl.k_s.r + hit.mtl.k_s.g + hit.mtl.k_s.b <= 0.0 ) break;
 			
 			Ray r;	// this is the reflection ray
-			HitInfo h;	// reflection hit info
 			
 			// TO-DO: Initialize the reflection ray
+			r.pos = hit.position;
+			view = normalize( -ray.dir );
+			r.dir = (2.0 * dot(normalize(view), hit.normal)) * hit.normal - normalize(view);
 			
+			// TO-DO: Intersect the reflection ray with the scene
+			HitInfo h;	// reflection hit info
 			if ( IntersectRay( h, r ) ) {
 				// TO-DO: Hit found, so shade the hit point
+				vec3 reflectionColor = Shade( h.mtl, h.position, h.normal, view );
 				// TO-DO: Update the loop variables for tracing the next reflection ray
+				clr += k_s * reflectionColor;
+				k_s *= h.mtl.k_s;	
+				hit = h;
+				ray = r;
+				
 			} else {
 				// The refleciton ray did not intersect with anything,
 				// so we are using the environment color
