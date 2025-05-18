@@ -180,7 +180,6 @@ class MeshDrawer
 	// The argument is a boolean that indicates if the checkbox is checked.
 	swapYZ( swap )
 	{
-		console.log("swap", swap);
 		gl.useProgram(this.prog);
 		gl.uniform1i(this.flgSwap, swap); 
 	}
@@ -197,7 +196,6 @@ class MeshDrawer
 			return;
 		}
 
-		console.log("Drawing mesh");
 
 		gl.clear(gl.COLOR_BUFFER_BIT );
 		gl.useProgram( this.prog ); 
@@ -254,7 +252,6 @@ class MeshDrawer
 	showTexture( show )
 	{
 		// [TO-DO] set the uniform parameter(s) of the fragment shader to specify if it should use the texture.
-		console.log("Show texture", show);
 
 		gl.useProgram(this.prog);
 		gl.uniform1i(this.flgShowTexture, show); 
@@ -264,7 +261,6 @@ class MeshDrawer
 	setLightDir( x, y, z )
 	{
 		// [TO-DO] set the uniform parameter(s) of the fragment shader to specify the light direction.
-		console.log("Light direction", x, y, z);
 		gl.useProgram(this.prog);
 		gl.uniform3f(this.lightDirection, x, y, z);
 	}
@@ -273,78 +269,151 @@ class MeshDrawer
 	setShininess( shininess )
 	{
 		// [TO-DO] set the uniform parameter(s) of the fragment shader to specify the shininess.
-		console.log("Shininess", shininess);
 		gl.useProgram(this.prog);
 		gl.uniform1f(this.shininess, shininess);
 	}
 }
+
+
 
 // This function is called for every step of the simulation.
 // Its job is to advance the simulation for the given time step duration dt.
 // It updates the given positions and velocities.
 function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, particleMass, gravity, restitution )
 {
-	let gravityForce = particleMass * gravity;
+	var forces = Array( positions.length ); // The total for per particle
 
-	let forces = Array( positions.length ); // The total for per particle
-	forces.fill(new Vec3(0, gravityForce, 0));
+	let gravityForce = gravity.mul(particleMass);
+	debug = false;
  
-	// Gravity force  
+	// [TO-DO] Compute the total force of each particle
+	for (let i = 0; i<springs.length; i++){
+		
+		let p0 = springs[i].p0; 
+		let p1 = springs[i].p1;
+
+		if (forces[p0] == null){
+			forces[p0] = new Vec3(0, 0, 0);
+		}
+		if (forces[p1] == null){
+			forces[p1] = new Vec3(0, 0, 0); 
+		}
+
+		// Spring force
+		let restLength = springs[i].rest; 
+		let delta = positions[p1].sub(positions[p0]); 
+		let springLength = delta.len();  
+		let springDirection = (delta).div(springLength); 
+		let springForce = springDirection.mul(stiffness * ( springLength - restLength));
+		
+		if (debug)
+			console.log("springForce", springForce);
+
+		// Spring dampling force
+		let speedChangeLength = (velocities[p1].sub(velocities[p0])).dot(springDirection);
+		let dampingForce = springDirection.mul(speedChangeLength).mul(damping);  
+		
+		if (debug)
+			console.log("dampingForce", dampingForce);
+
+		let totalForce = springForce.add(dampingForce); 
+		if (debug)
+			console.log("totalForce", totalForce);
+
+		forces[p0].inc(totalForce); 
+		forces[p1].dec(totalForce);  
+		
+	}
 	
 	// [TO-DO] Update positions and velocities
 	let acceleration = Array( positions.length ); // The total for per particle
-	acceleration.fill(new Vec3(0, 0, 0));
-	for (let i = 0; i<springs.length; i++){
-		// [TO-DO] Compute the total force of each particle
-		
-		// Spring force
-		let restLength = springs[i].rest;
-		//console.log("restLength", restLength)
-		let p0 = springs[i].p0; 
-		let p1 = springs[i].p1;
-		//console.log("positions[p0]", positions[p0])
-
-		//console.log("positions[p1]", positions[p1])
-		let delta = positions[p1].sub(positions[p0]);
-		//console.log("delta", delta)
-		//console.log("delta len", delta.len2())
-		let springLength =  ((delta).len2()) ** 0.5;
-		//console.log("springLength", springLength)
 	
-		let springDirection = (delta).div(springLength);
-		//console.log("springDirection", springDirection)
-		let springForce = springDirection.mul((stiffness * ( springLength - restLength))) ;
-		//console.log("stiffness * ( springLength - restLength)", stiffness * ( springLength - restLength))
-		//console.log("springForce", springForce)
-
-		// Spring dampling force
-		let speedLength = velocities[p1].sub(velocities[p0]);
-		//console.log("speedLength", speedLength)
-		let damplingForce = (speedLength.dot(springDirection))* (damping);  
-		//console.log("damplingForce", damplingForce)
-
-		let totalForce = springForce.add(damplingForce); 
-
-		//totalForce.inc(gravityForce);  
-		forces[p0].inc(totalForce);
-		forces[p1].dec( totalForce); 
-		
-	}	
-	
-	for (let i  =0; i<positions.length; i++){
+	for (let i = 0; i<positions.length; i++){
  
-		// calculcate acceleration 
-		acceleration[i] = ((forces[i]).div(particleMass)).copy() ;
+		if (acceleration[i] == null){
+			acceleration[i] = new Vec3(0, 0, 0);
+		}
+		// calculate acceleration  
+		acceleration[i].inc((forces[i].add(gravityForce)).div(particleMass));
 
 		// calculate velocity 
 		velocities[i].inc(acceleration[i].mul(dt));
 
 		// calculate position
 		positions[i].inc(velocities[i].mul(dt));
+
+		// [TO-DO] Handle collisions
+		if ((positions[i].x**2)>1) {
+			console.log("X -Position", positions[i]);
+			collisionHandler(positions, velocities, i, restitution, "x");
+		}
+
+		if ((positions[i].y**2)>1) {
+			collisionHandler(positions, velocities, i, restitution, "y");
+		}
+ 
+		if ((positions[i].z**2)>1) {
+			console.log("Z -Position", positions[i]);
+			collisionHandler(positions, velocities, i, restitution, "z");
+		}
+
 	}
 
+}
 
-	// [TO-DO] Handle collisions
-	
+function collisionHandler(positions, velocities, i, restitution,axis){
+
+			let h; 
+			let v; 
+			let position; 
+			let velocity;
+		
+			if (axis == "x"){
+				h = (Math.abs(positions[i].x) - 1); 
+				v = (velocities[i].x);
+				position = positions[i].x;
+				velocity = velocities[i].x;
+			} else if (axis == "y"){
+				h = (Math.abs(positions[i].y) - 1); 
+				v = (velocities[i].y);
+				position = positions[i].y;
+				velocity = velocities[i].y;
+			} else if (axis == "z"){
+				h = (Math.abs(positions[i].z) - 1); 
+				v = (velocities[i].z); 
+				position = positions[i].z;
+				velocity = velocities[i].z;
+			} else {
+				console.log("Error: axis not defined")
+			} 
+
+			let h_upd = restitution * h; 
+			let v_upd = restitution * v * -1;
+			velocity = v_upd;
+
+			if (position< 0){
+				// allign the position
+				position += h; 
+				// sum the bounce
+				position += h_upd;
+			} else {
+				// allign the position
+				position -= h;
+				// sum the bounce
+				position -= h_upd;
+			}
+
+			if (axis == "x"){
+				positions[i].x = position;
+				velocities[i].x = velocity;
+			} else if (axis == "y"){
+				positions[i].y = position;
+				velocities[i].y = velocity;
+			} else if (axis == "z"){
+				positions[i].z = position;
+				velocities[i].z = velocity;
+			} 
+			
+		
 }
 
