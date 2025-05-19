@@ -128,7 +128,7 @@ class MeshDrawer
 			gl.useProgram(this.prog);
 			gl.uniform1i(this.flgShowTexture, true);
 			gl.uniform1i(this.flgSwap, false);
-			gl.uniform1f(this.shininess, 100); 
+			gl.uniform1f(this.shininess, 10); 
 			gl.uniform3f(this.lightDirection, 0.0,0.0,-1.0);
 
 
@@ -344,7 +344,6 @@ function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, pa
 
 		// [TO-DO] Handle collisions
 		if ((positions[i].x**2)>1) {
-			console.log("X -Position", positions[i]);
 			collisionHandler(positions, velocities, i, restitution, "x");
 		}
 
@@ -353,7 +352,6 @@ function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, pa
 		}
  
 		if ((positions[i].z**2)>1) {
-			console.log("Z -Position", positions[i]);
 			collisionHandler(positions, velocities, i, restitution, "z");
 		}
 
