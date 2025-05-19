@@ -23,14 +23,14 @@ void main()
         // from world space to camera space
 
     } 
-    gl_Position = matrixMVP * vec4(newPos, 1.0);
 
     texCoords = textureCoords;
     // invTranspMV * normal
     normalMVP = invTranspMV * normal; 
     // MV * pos
-    viewVector = vec3( matrixMVP * vec4(newPos, 1.0));
+    viewVector = vec3( matrixMV * vec4(newPos, 1.0));
 
+    gl_Position = matrixMVP * vec4(newPos, 1.0);
 
 
 }

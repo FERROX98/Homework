@@ -14,7 +14,7 @@ varying vec3 normalMVP;
 void main()
 {
     float lightIntensity = 1.0;
-    float ambientLightIntensity = 0.45;
+    float ambientLightIntensity = 0.25;
 
     vec4 lightColor = vec4(1.0);
     vec4 clr = vec4(1,1,1,1);

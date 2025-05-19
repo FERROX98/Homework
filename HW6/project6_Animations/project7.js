@@ -304,6 +304,7 @@ function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, pa
 		let delta = positions[p1].sub(positions[p0]); 
 		let springLength = delta.len();  
 		let springDirection = (delta).div(springLength); 
+		// Spring strength (compressed or extended)
 		let springForce = springDirection.mul(stiffness * ( springLength - restLength));
 		
 		if (debug)
@@ -311,6 +312,7 @@ function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, pa
 
 		// Spring dampling force
 		let speedChangeLength = (velocities[p1].sub(velocities[p0])).dot(springDirection);
+		// Project the velocity difference along the spring direction 
 		let dampingForce = springDirection.mul(speedChangeLength).mul(damping);  
 		
 		if (debug)
