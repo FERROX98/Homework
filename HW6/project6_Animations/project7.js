@@ -282,7 +282,10 @@ class MeshDrawer
 function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, particleMass, gravity, restitution )
 {
 	var forces = Array( positions.length ); // The total for per particle
-
+	for (let i = 0; i < positions.length; i++) {
+		forces[i] = new Vec3(0, 0, 0);
+	}
+	
 	let gravityForce = gravity.mul(particleMass);
 	debug = false;
  
@@ -291,13 +294,6 @@ function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, pa
 		
 		let p0 = springs[i].p0; 
 		let p1 = springs[i].p1;
-
-		if (forces[p0] == null){
-			forces[p0] = new Vec3(0, 0, 0);
-		}
-		if (forces[p1] == null){
-			forces[p1] = new Vec3(0, 0, 0); 
-		}
 
 		// Spring force
 		let restLength = springs[i].rest; 
@@ -387,21 +383,9 @@ function collisionHandler(positions, velocities, i, restitution,axis){
 				console.log("Error: axis not defined")
 			} 
 
-			let h_upd = restitution * h; 
-			let v_upd = restitution * v * -1;
-			velocity = v_upd;
+			position = Math.sign(position) * (1 - restitution * h);
+			velocity = -restitution * velocity ;
 
-			if (position< 0){
-				// allign the position
-				position += h; 
-				// sum the bounce
-				position += h_upd;
-			} else {
-				// allign the position
-				position -= h;
-				// sum the bounce
-				position -= h_upd;
-			}
 
 			if (axis == "x"){
 				positions[i].x = position;
