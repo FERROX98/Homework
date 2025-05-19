@@ -386,7 +386,6 @@ function collisionHandler(positions, velocities, i, restitution,axis){
 			position = Math.sign(position) * (1 - restitution * h);
 			velocity = -restitution * velocity ;
 
-
 			if (axis == "x"){
 				positions[i].x = position;
 				velocities[i].x = velocity;
