@@ -128,7 +128,7 @@ class MeshDrawer
 			gl.useProgram(this.prog);
 			gl.uniform1i(this.flgShowTexture, true);
 			gl.uniform1i(this.flgSwap, false);
-			gl.uniform1f(this.shininess, 10); 
+			gl.uniform1f(this.shininess, 100); 
 			gl.uniform3f(this.lightDirection, 0.0,0.0,-1.0);
 
 
