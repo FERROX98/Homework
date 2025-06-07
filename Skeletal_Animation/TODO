@@ -1,0 +1,20 @@
+TODO List:
+
+1. Create a plane ok
+2. Set up environment and shader ok
+4. Implement stat command ok
+5. Implement camera command ok
+6. Select object functionality (texture)ok 
+7. Import OBJ ok
+
+8. light 
+9. env object 
+10. Skeletal animation spaceship
+11. Add humanoid model
+12. Skeletal animation hum
+
+
+13. Implement collision detection
+14. Add shadow mapping
+15. Ground texture
+16. refactor camera and load model 
