@@ -153,7 +153,7 @@ class Model {
 
     gl.uniform1i(gl.getUniformLocation(this.program, 'isTextureEnabled'), 1);
     // === Load multiple textures automatically ===
-    const basePath = 'models/assets/textures/';
+    const basePath = `models/assets/textures/${this.name}/`;
     if (json.materials && json.materials.length > 0) {
       const mat = json.materials[0];
       // Base color
