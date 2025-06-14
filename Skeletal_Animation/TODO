@@ -2,9 +2,9 @@ TODO List:
 
 1. Create a plane ok
 2. Set up environment and shader ok
-4. Implement stat command ok
+4. Implement stat command ok (move to  right left )
 5. Implement camera command ok
-6. Select object functionality (texture)ok 
+6. Select object functionality (texture)
 7. Import OBJ ok
 
 8. light 
@@ -12,9 +12,17 @@ TODO List:
 10. Skeletal animation spaceship
 11. Add humanoid model
 12. Skeletal animation hum
-
+. add free camera
 
 13. Implement collision detection
 14. Add shadow mapping
 15. Ground texture
 16. refactor camera and load model 
+
+// refactor 
+// fix walk animation
+// add sun and lights 
+// fix ui adding comand for the sun
+// complete scene (wlaking animation setting ecc, other building)
+// add other animation and other npc 
+// todo texture and normal ground

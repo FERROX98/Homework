@@ -1,278 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Skeletal Animation</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./ui/stats.css" />
-    <link rel="stylesheet" href="./ui/ui.css" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <canvas id="glcanvas"></canvas>
 
-    // Model selector
-    <div class="model-selector">
-      <button id="prevModel" class="model-nav">◀</button>
-      <span class="model-name">spaceship</span>
-      <button id="nextModel" class="model-nav">▶</button>
+<head>
+  <meta charset="UTF-8" />
+  <title>Skeletal Animation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./ui/stats.css" />
+  <link rel="stylesheet" href="./ui/ui.css" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <canvas id="glcanvas"></canvas>
+
+  <!-- Stats -->
+  <div id="stats-container">
+    <!-- title -->
+    <div id="stats-header" class="stats-header">
+      <span id="stats-title" class="stats-title">Stats</span>
+      <span id="head-title" class="head-title">
+        <button id="minimizeBtn" class="minimizeBtn">-</button>
+      </span>
     </div>
 
-    // Stats
-    <div id="stats-controls">
-      <div id="stats-container">
-        <button id="toggle-stats">Hide Stats</button>
+    <!-- minimized -->
+    <div id="minimized-view" class="minimized-view">
+      <span style="color: #aaa; margin-right: 10px;">FPS:</span>
+      <span id="fps-mini" style="color: #0f0;">--</span>
+    </div>
+
+    <div id="full-content" class="full-content">
+
+      <!--  helps -->
+      <div style="margin-bottom: 8px;">
+        <div style="color: #aaa; font-weight: bold; margin-bottom: 4px;">Controls:</div>
+        <div id="controls-display" style="font-size: 11px; color: #ccc; line-height: 1.2;">
+          <div>W - Move Forward</div>
+          <div>S - Move Backward</div>
+          <div>A - Turn Left</div>
+          <div>D - Turn Right</div>
+          <div>C - Toggle Camera</div>
+          <div>I - Animation Selector</div>
+          <div>H - Toggle Debug</div>
+          <div style="color: #FFA500;">Ctrl+F - Camera Controls</div>
+        </div>
+      </div>
+
+      <!-- info camera -->
+      <div id="controls-display"
+        style="margin-bottom: 8px; padding-top: 4px; border-top: 1px solid rgba(170, 170, 170, 0.3);">
+        <div style="color: #aaa; font-weight: bold; margin-bottom: 4px;">Character:</div>
+        <div class="stat-row" style="display: flex; justify-content: space-between; margin: 2px 0;">
+          <span style="color: #aaa; margin-right: 10px;">Position:</span>
+          <span id="position-info" style="color: #0f0; font-size: 11px;">(0.0, 0.0, 0.0)</span>
+        </div>
+        <div class="stat-row">
+          <span style="color: #aaa; margin-right: 10px;">Rotation:</span>
+          <span id="rotation-info" style="color: #0f0;">0.0°</span>
+        </div>
+        <div class="stat-row">
+          <span style="color: #aaa; margin-right: 10px;">Pitch:</span>
+          <span id="pitch-info" style="color: #0f0;">0.0°</span>
+        </div>
+        <div class="stat-row">
+          <span style="color: #aaa; margin-right: 10px;">Moving:</span>
+          <span id="movement-info" style="color: #0f0;">No</span>
+        </div>
+        <div class="stat-row">
+          <span style="color: #aaa; margin-right: 10px;">Keys:</span>
+          <span id="keys-info" style="color: #0f0; font-size: 11px;">None</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 8px; padding-top: 4px; border-top: 1px solid rgba(170, 170, 170, 0.3);">
+        <div class="stat-row" style="display: flex; justify-content: space-between; margin: 2px 0;">
+          <span style="color: #aaa; margin-right: 10px;">Camera:</span>
+          <span id="camera-mode" style="color: #0f0;">Third Person</span>
+        </div>
+      </div>
+
+      <!-- fps -->
+      <div style="padding-top: 4px; border-top: 1px solid rgba(170, 170, 170, 0.3);">
+        <div style="color: #aaa; font-weight: bold; margin-bottom: 4px;">Performance:</div>
+
         <div class="stat-row">
           <span class="stat-label">FPS:</span>
           <span id="fps" class="stat-value">0</span>
         </div>
+
         <div class="stat-row">
           <span class="stat-label">Frame Time:</span>
-          <span
-            id="ms"
-            class="stat-value ${parseInt(ms) > 33 ? 'danger' : parseInt(ms) > 20 ? 'warning' : ''}"
-            >${ms}</span
-          >
+          <span id="ms"
+            class="stat-value ${parseInt(ms) > 33 ? 'danger' : parseInt(ms) > 20 ? 'warning' : ''}">${ms}</span>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Memory:</span>
-          <span id="mb" class="stat-value">${mb}</span>
-        </div>
-        <!-- <div class="stat-row">
-          <span class="stat-label">Objects:</span>
-          <span id="obj" class="stat-value">${scene.children.length}</span>
-        </div> -->
+
         <div class="stat-row">
           <span class="stat-label">Triangles:</span>
           <span id="triangles" class="stat-value">-</span>
         </div>
-        <!-- <div class="stat-row">
-          <span class="stat-label">Geometries:</span>
-          <span id="geometries" class="stat-value">${geometries}</span>
-        </div> -->
-        <!-- <div class="stat-row">
-          <span class="stat-label">Textures:</span>
-          <span id="tex" class="stat-value">${textures}</span>
-        </div> -->
-      </div>
-    </div>
 
-    // Button panel
-    <div id="ui" style="position: fixed; top: 10px; left: 10px; z-index: 10">
-      <button id="left-button-panel" >◀</button>
-      <!-- <button id="right-button-panel">◀</button> -->
-    </div>
-
-    // ui panel 
-    <div id="ui-panel">
-      <!-- Header Buttons -->
-      <div class="ui-button-row">
-        <button id="resetDefaultsButton" class="ui-button warning">
-          Reset to Default
-        </button>
-        <button id="collapseAllButton" class="ui-button ghost">
-          Collapse All
-        </button>
-      </div>
-
-      <!-- Lighting Section -->
-      <div class="section">
-        <div class="section-header">
-          <h3>Lighting Controls</h3>
-          <span class="section-toggle">▼</span>
-        </div>
-        <div class="section-content">
-          <div class="control-group">
-            <!-- Ambient Light -->
-            <div class="slider-container">
-              <label for="ambientIntensity">
-                Ambient Light
-                <span class="value-display" id="ambientIntensityValue"
-                  >0.4</span
-                >
-              </label>
-              <input
-                type="range"
-                id="ambientIntensity"
-                min="0"
-                max="1"
-                step="0.1"
-                value="0.4"
-              />
-            </div>
-
-            <!-- Directional Light -->
-            <div class="slider-container">
-              <label for="directionalIntensity">
-                Sun Light
-                <span class="value-display" id="directionalIntensityValue"
-                  >1.0</span
-                >
-              </label>
-              <input
-                type="range"
-                id="directionalIntensity"
-                min="0"
-                max="2"
-                step="0.1"
-                value="1.0"
-              />
-            </div>
-
-            <!-- Light Color -->
-            <div class="slider-container">
-              <label for="lightColor">Light Color</label>
-              <input type="color" id="lightColor" value="#ffffff" />
-            </div>
-
-            <!-- Shadow Softness -->
-            <div class="slider-container">
-              <label for="shadowSoftness">
-                Shadow Softness
-                <span class="value-display" id="shadowSoftnessValue">1.0</span>
-              </label>
-              <input
-                type="range"
-                id="shadowSoftness"
-                min="0"
-                max="2"
-                step="0.1"
-                value="1.0"
-              />
-            </div>
-
-            <!-- Shadow Mapping Toggle -->
-            <div class="slider-container checkbox-inline">
-              <label for="shadowMapping">Enable Shadow Mapping</label>
-              <input type="checkbox" id="shadowMapping" checked />
-            </div>
-
-            <!-- Shadow Map Size -->
-            <div class="slider-container">
-              <label for="shadowMapSize">Shadow Map Size</label>
-              <select id="shadowMapSize">
-                <option value="512">512</option>
-                <option value="1024">1024</option>
-                <option value="2048" selected>2048</option>
-                <option value="4096">4096</option>
-              </select>
-            </div>
-
-            <!-- Shadow Map Type -->
-            <div class="slider-container">
-              <label for="shadowMapType">Shadow Map Type</label>
-              <select id="shadowMapType">
-                <option value="Basic">Basic</option>
-                <option value="PCF">PCF</option>
-                <option value="PCFSoft" selected>PCFSoft</option>
-              </select>
-            </div>
-
-            <!-- Animate Sun -->
-            <div class="slider-container checkbox-inline">
-              <label for="animateSun">Animate Sun (Day/Night)</label>
-              <input type="checkbox" id="animateSun" />
-            </div>
-            <div class="slider-container">
-              <label for="sunSpeed"
-                >Speed
-                <span class="value-display" id="sunSpeedValue">1.0</span></label
-              >
-              <input
-                type="range"
-                id="sunSpeed"
-                min="0.1"
-                max="5"
-                step="0.1"
-                value="1.0"
-              />
-            </div>
-
-            <!-- Shadow Overlay -->
-            <div class="slider-container checkbox-inline">
-              <label for="shadowOverlay">Shadow Overlay</label>
-              <input type="checkbox" id="shadowOverlay" />
-            </div>
-
-            <!-- Sun Direction -->
-            <div class="slider-container">
-              <label for="sunX"
-                >Sun Direction X
-                <span class="value-display" id="sunXValue">5.0</span></label
-              >
-              <input
-                type="range"
-                id="sunX"
-                min="-20"
-                max="20"
-                step="0.1"
-                value="5"
-              />
-
-              <label for="sunY"
-                >Sun Direction Y
-                <span class="value-display" id="sunYValue">5.0</span></label
-              >
-              <input
-                type="range"
-                id="sunY"
-                min="0.1"
-                max="20"
-                step="0.1"
-                value="5"
-              />
-
-              <label for="sunZ"
-                >Sun Direction Z
-                <span class="value-display" id="sunZValue">5.0</span></label
-              >
-              <input
-                type="range"
-                id="sunZ"
-                min="-20"
-                max="20"
-                step="0.1"
-                value="5"
-              />
-            </div>
-
-            <!-- Time of Day Presets -->
-            <div class="slider-container">
-              <label for="timeOfDayPreset">Time of Day Preset</label>
-              <select id="timeOfDayPreset">
-                <option value="custom">Custom</option>
-                <option value="morning">Morning</option>
-                <option value="noon">Noon</option>
-                <option value="evening">Evening</option>
-                <option value="night">Night</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Model Section -->
-      <div class="section">
-        <div class="section-header">
-          <h3>Model</h3>
-          <span class="section-toggle">▼</span>
-        </div>
-        <div class="section-content">
-          <div class="slider-container checkbox-inline">
-            <label for="textureToggle" class="checkbox-label">
-              <span>Enable Textures</span>
-              <input type="checkbox" id="textureToggle" checked />
-            </label>
-          </div>
+        <div class="stat-row">
+          <span class="stat-label">Memory:</span>
+          <span id="mb" class="stat-value">${mb}</span>
         </div>
       </div>
     </div>
+  </div>
 
-    <script type="module">
-      import { main } from "./main.js";
-      const canvas = document.getElementById("glcanvas");
-      main(canvas);
-    </script>
-  </body>
+  <!-- Camera Controls Panel -->
+  <div id="camera-controls-panel" style="display: none;">
+    <div class="camera-controls-header">
+      <h3 class="camera-controls-title">Camera Controls</h3>
+      <button id="camera-close-btn">✕</button>
+    </div>
+
+    <div class="camera-controls-content">
+      <!-- FOV Section -->
+      <div class="camera-section">
+        <div class="camera-section-title">Field of View (FOV)</div>
+        <label>FOV: <span id="fov-value">45°</span></label>
+        <input type="range" id="fov-slider" min="20" max="120" step="1" value="45">
+        <div class="range-labels"><span>20°</span><span>120°</span></div>
+      </div>
+
+      <!-- Speed Section -->
+      <div class="camera-section">
+        <div class="camera-section-title">Movement Speed</div>
+        <label>Speed: <span id="speed-value">5.0</span></label>
+        <input type="range" id="speed-slider" min="1" max="20" step="0.5" value="10">
+        <div class="range-labels"><span>1</span><span>10.0</span></div>
+      </div>
+
+      <!-- Reset Button -->
+      <div class="camera-section"> 
+        <button id="reset-camera-settings">Reset to Defaults</button>
+      </div>
+    </div> 
+  </div>
+   
+<!-- Animation Selector Overlay -->
+<div id="animation-selector-overlay">
+  <div class="animation-selector-popup">
+    <svg class="animation-connector-lines"></svg>
+
+    <div class="animation-center-circle">
+      <div class="animation-title">Select Animation</div>
+      <div id="selected-animation-name" class="animation-subtitle">Idle</div>
+    </div>
+
+    <div class="animation-instructions">
+     select an animation using the wheel or click on the icons.
+      <br>
+      Use <span class="key">I</span> to toggle this menu.
+    </div>
+  </div> 
+</div>
+
+
+
+  <script type="module">
+    import {
+      main
+    } from "./main.js";
+    const canvas = document.getElementById("glcanvas");
+    main(canvas);
+  </script>
+</body>
+
 </html>

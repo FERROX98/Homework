@@ -1,40 +1,68 @@
-class Stats {
+export class Stats {
   constructor() {
+
     this.frameCount = 0;
     this.lastFpsUpdate = performance.now();
     this.lastFrameTime = performance.now();
 
-    this.fps = 0;
-    document.getElementById("toggle-stats").addEventListener("click", () => {
-      const toggleBtn = document.getElementById("toggle-stats");
+    this.isVisible = true;
+    this.isMinimized = false;
 
-      const statsContainer = document.getElementById("stats-container");
-      const rows = statsContainer.querySelectorAll(".stat-row");
-      const visible = rows[0].style.display !== "none";
-      
-      rows.forEach((row) => {
-        row.style.display = visible ? "none" : "flex";
-      });
-      toggleBtn.textContent = visible ? "Show Stats" : "Hide Stats";
-    });
+    this.minimizeBtn = document.getElementById("minimizeBtn");
+    this.fullContent = document.getElementById('full-content');
+    this.minimizedView = document.getElementById('minimized-view');
+    this.headerTitle = document.getElementById('header-title');
+    this.container = document.getElementById('stats-container');
+
+    this.setEventsHandler();
   }
 
-  update(time, triangles = "-") {
+  // ok 
+  setEventsHandler() {
+    // Add keyboard toggle functionality
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'h') {
+        this.toggle();
+      }
+    });
+
+    this.minimizeBtn.addEventListener('mouseenter', () => {
+      this.minimizeBtn.style.background = '#333';
+    });
+
+    this.minimizeBtn.addEventListener('mouseleave', () => {
+      this.minimizeBtn.style.background = '#222';
+    });
+
+    this.minimizeBtn.addEventListener('click', (e) => {
+      this.toggleMinimize();
+    });
+  }
+  
+  // ok 
+  updatePerformanceState(time, triangles = "-") {
+    if (!this.isVisible) return;
+
+    // At each frame
     this.frameCount++;
+
     let ms = "-";
+
+    // this frame - last frame  
     let frameTime = time - this.lastFrameTime;
     ms = frameTime.toFixed(1) + " ms";
-    this.lastFrameTime = time;
-    if ((time %6000) < 20) {
-        console.log('Rendering frame at time:', time /1000);
-      }
-    if (time - this.lastFpsUpdate > 1000) {
+
+    if ((time % 12000) < 20) {
+      console.log('Rendering frame at time:', time / 1000);
+    }
+
+    // update at each second
+    if (time - this.lastFpsUpdate >= 1000) {
       //   console.log('Updating FPS:', this.frameCount, 'frames in', time - this.lastFpsUpdate, 'ms');
-      this.fps = Math.round(
-        (this.frameCount * 1000) / (time - this.lastFpsUpdate)
-      );
-      // console.log('FPS:', this.frameCount * 1000);
-      const fpsDisplay = document.getElementById("fps");
+
+      this.fps = this.frameCount;
+
+      const fpsDisplay = this.isMinimized ? document.getElementById("fps-mini") : document.getElementById("fps");
       if (fpsDisplay) {
         fpsDisplay.textContent = this.fps;
       }
@@ -50,30 +78,129 @@ class Stats {
       if (msDisplay) {
         msDisplay.textContent = ms;
       }
+
       const mbDisplay = document.getElementById("mb");
       if (mbDisplay) {
         mbDisplay.textContent = mb;
       }
 
-      let textureMemory = "-";
-      if (
-        window.renderer &&
-        window.renderer.info &&
-        window.renderer.info.memory
-      ) {
-        const texCount = window.renderer.info.memory.textures;
-        textureMemory = texCount + " textures";
-      }
-      const texDisplay = document.getElementById("tex");
-      if (texDisplay) {
-        texDisplay.textContent = textureMemory;
-      }
       const triDisplay = document.getElementById("triangles");
       if (triDisplay) {
         triDisplay.textContent = triangles;
       }
     }
+    this.lastFrameTime = time;
+  }
+
+  // ok 
+  toggleMinimize() {
+    this.isMinimized = !this.isMinimized;
+
+    if (this.isMinimized) {
+      this.fullContent.style.display = 'none';
+      this.minimizedView.style.display = 'block';
+      this.minimizeBtn.innerHTML = '+';
+      this.container.style.minWidth = 'auto';
+      this.container.style.width = 'auto';
+    } else {
+      this.fullContent.style.display = 'block';
+      this.minimizedView.style.display = 'none';
+      this.minimizeBtn.innerHTML = '−';
+    }
+  }
+
+  // ok
+  updateCharacterState(characterController, camera) {
+    if (!this.isVisible) return;
+
+    if (!characterController || !characterController.model)
+      return
+    
+    // state 
+    const state = characterController.getState();
+    const pos = state.position;
+    const rotationDegrees = (state.rotation * 180 / Math.PI).toFixed(1);
+
+    const posElement = document.getElementById('position-info');
+    if (posElement) {
+      posElement.textContent = `(${pos[0].toFixed(1)}, ${pos[1].toFixed(1)}, ${pos[2].toFixed(1)})`;
+    }
+
+    const rotElement = document.getElementById('rotation-info');
+    if (rotElement) {
+      rotElement.textContent = `${rotationDegrees}°`;
+    }
+
+    const pitchElement = document.getElementById('pitch-info');
+    if (pitchElement) {
+      pitchElement.textContent = (state.pitch * 180 / Math.PI).toFixed(1) + '°';
+    }
+
+    const moveElement = document.getElementById('movement-info');
+    if (moveElement) {
+      moveElement.textContent = state.isMoving ? 'Yes' : 'No';
+    }
+    
+    const activeKeys = Object.keys(state.keys)
+      .filter(key => state.keys[key])
+      .map(key => key.toUpperCase())
+      .join(', ') || 'None';
+
+    const keysElement = document.getElementById('keys-info');
+    if (keysElement) {
+      keysElement.textContent = activeKeys;
+    }
+
+    const cameraMode = state.cameraMode;
+    let displayMode = '';
+    switch (cameraMode) {
+      case 'thirdPerson':
+        displayMode = 'Third Person';
+        break;
+      case 'firstPerson':
+        displayMode = 'First Person';
+        break;
+      case 'orbital':
+        displayMode = 'Orbital';
+        break;
+      default:
+        displayMode = cameraMode;
+    }
+
+    const camElement = document.getElementById('camera-mode');
+    if (camElement) {
+      camElement.textContent = displayMode;
+    }
+  }
+
+  // ok
+  toggle() {
+    this.isVisible = !this.isVisible;
+
+    if (!this.isVisible) {
+      this.hide();
+    } else {
+      this.show();
+    }
+  }
+
+  // ok 
+  show() {
+    this.isVisible = true;
+    this.container.style.display = 'block';
+    setTimeout(() => {
+      this.container.style.opacity = '1';
+      this.container.style.transform = 'translateY(0)';
+    }, 10);
+  }
+
+  // ok 
+  hide() {
+    this.isVisible = false;
+    this.container.style.opacity = '0';
+    this.container.style.transform = 'translateY(-10px)';
+    setTimeout(() => {
+      this.container.style.display = 'none';
+    }, 300);
   }
 }
-
-export { Stats };
