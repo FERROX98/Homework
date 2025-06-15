@@ -132,6 +132,77 @@
         <div class="range-labels"><span>1</span><span>10.0</span></div>
       </div>
 
+      <!-- Walk Animation Type Section -->
+      <div class="camera-section">
+        <div class="camera-section-title">Walk Animation Type</div>
+        <select id="walk-animation-selector" class="walk-animation-dropdown">
+          <option value="normal" selected>Normal Walk</option>
+          <option value="relaxed">Relaxed Walk</option>
+          <option value="fast">Fast Run</option>
+        </select>
+        <div class="walk-animation-info">
+          <span id="walk-animation-description">Standard walking animation</span>
+        </div>
+      </div>
+
+      <!-- Foot Tracking Section -->
+      <div class="camera-section">
+        <div class="camera-section-title">Foot Tracking</div>
+        <label class="checkbox-container">
+          <input type="checkbox" id="foot-tracking-toggle" checked>
+          <span class="checkmark"></span>
+          Enable Foot-Based Movement
+        </label>
+        <div class="foot-tracking-info">
+          <span id="foot-tracking-status">Tracks foot movement in animation for realistic character motion</span>
+        </div>
+      </div>
+
+      <!-- Lighting Control Section -->
+      <div class="camera-section">
+        <div class="camera-section-title">Sun & Lighting</div>
+        
+        <!-- Objects Visibility Control -->
+        <div class="light-control-group">
+          <label>Scene Objects:</label>
+          <div class="objects-list-container">
+            <div id="objects-list" class="objects-list">
+              <!-- Objects will be populated dynamically -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Sun Position -->
+        <div class="light-control-group">
+          <label>Sun X Position: <span id="sun-x-value">50</span></label>
+          <input type="range" id="sun-x-slider" min="-100" max="100" step="5" value="50">
+          <div class="range-labels"><span>-100</span><span>100</span></div>
+        </div>
+        
+        <div class="light-control-group">
+          <label>Sun Y Position: <span id="sun-y-value">80</span></label>
+          <input type="range" id="sun-y-slider" min="20" max="150" step="5" value="80">
+          <div class="range-labels"><span>20</span><span>150</span></div>
+        </div>
+        
+        <div class="light-control-group">
+          <label>Sun Z Position: <span id="sun-z-value">30</span></label>
+          <input type="range" id="sun-z-slider" min="-100" max="100" step="5" value="30">
+          <div class="range-labels"><span>-100</span><span>100</span></div>
+        </div>
+        
+        <!-- Light Intensity -->
+        <div class="light-control-group">
+          <label>Light Intensity: <span id="light-intensity-value">1.0</span></label>
+          <input type="range" id="light-intensity-slider" min="0" max="2" step="0.1" value="1.0">
+          <div class="range-labels"><span>0.0</span><span>2.0</span></div>
+        </div>
+        
+        <div class="lighting-info">
+          <span id="lighting-status">Directional light follows sun position</span>
+        </div>
+      </div>
+
       <!-- Reset Button -->
       <div class="camera-section"> 
         <button id="reset-camera-settings">Reset to Defaults</button>
@@ -141,19 +212,12 @@
    
 <!-- Animation Selector Overlay -->
 <div id="animation-selector-overlay">
+      <div class="animation-title">Animation</div>
   <div class="animation-selector-popup">
-    <svg class="animation-connector-lines"></svg>
-
     <div class="animation-center-circle">
-      <div class="animation-title">Select Animation</div>
-      <div id="selected-animation-name" class="animation-subtitle">Idle</div>
+      <div id="selected-animation-name" class="animation-subtitle">-</div>
     </div>
-
-    <div class="animation-instructions">
-     select an animation using the wheel or click on the icons.
-      <br>
-      Use <span class="key">I</span> to toggle this menu.
-    </div>
+    <div id="animation-list" class="animation-list"></div>
   </div> 
 </div>
 

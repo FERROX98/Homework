@@ -5,6 +5,7 @@ import { mat4 } from "https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js"
 
 
 const debug = false;  
+
 export class GLTFUtils {
 
     // ok
@@ -12,7 +13,7 @@ export class GLTFUtils {
         if (!model instanceof Model)
             throw new Error("model must be an instance of Model");
         
-        console.log(`[${model.name}] Starting GLTF load from: ${url}`);
+        if (debug) console.log(`[${model.name}] Starting GLTF load from: ${url}`);
         
         // load the gltf file
         const res = await fetch(url);
@@ -37,7 +38,11 @@ export class GLTFUtils {
 
         // Set animation data
         model.animations = json.animations || [];
-        AnimationUtils.configureAnimationData(model, json, bin);
+
+        if (debug) console.log(`[${model.name}] Animations found: ${model.animated}`);
+        
+        if (model.animated)
+            AnimationUtils.configureAnimationData(model, json, bin);
 
         // Skeletal
         this.getSkinData(model);
@@ -167,7 +172,7 @@ export class GLTFUtils {
         const json = model.json;
         const bin = model.bin;
         let primitivesCount = 1;
-
+        
         // joint all scene 
         // for all obj retrieve vertex and data (triangle) and store in the buffer
         for (const primitive of allPrimitives) {

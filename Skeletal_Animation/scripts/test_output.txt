@@ -1,0 +1,146 @@
+Successfully loaded: /home/driverx/Desktop/ESAMI/Interactive/Homework/Skeletal_Animation/models/assets/rb4.gltf
+Found 19 animations:
+  0: Armature.001|walk01_loop_251104
+    Is walking: True
+  1: Armature.002|walk01_start_251151
+    Is walking: True
+  2: Armature.003|Default
+    Is walking: True
+  3: Armature.004|crouch_walk_r_againstwall
+    Is walking: True
+  4: Armature.005|aerobic-dance_315220
+    Is walking: False
+  5: Armature.006|cc02_sideshoot
+    Is walking: False
+  6: Armature.007|dual_gun_muzdn_mov_cool_shoot_279383
+    Is walking: False
+  7: Armature.008|hold_gun_break_door_279385
+    Is walking: False
+  8: Armature.009|idle_251087
+    Is walking: True
+  9: Armature.010|hold_gun_fastrun_forward_end_279362
+    Is walking: False
+  10: Armature.011|hold_gun_fastrun_forward_loop_279387
+    Is walking: False
+  11: Armature.012|hold_gun_fastrun_forward_start_279410
+    Is walking: False
+  12: Armature.013|hold_gun_shooting_279354
+    Is walking: False
+  13: Armature.014|dual_gun_draw_gun_behind_back_279371
+    Is walking: False
+  14: Armature.015|stand-to-sit_251123
+    Is walking: False
+  15: Armature.016|walk-relaxed_end_251010
+    Is walking: True
+  16: Armature.017|walk-relaxed_loop_251148
+    Is walking: True
+  17: Armature.018|walk-relaxed_start_251114
+    Is walking: True
+  18: Armature|walk01_end_251138
+    Is walking: True
+
+Walk animations: {'WalkLoop': 0, 'WalkStart': 1, 'Default': 2, 'Idle': 8, 'WalkRelaxedEnd': 15, 'WalkRelaxedLoop': 16, 'WalkRelaxedStart': 17, 'WalkEnd': 18}
+General animations: {'Dance': 4, 'Shoot': 5, 'CoolShoot': 6, 'BreakDoor': 7, 'FastRunEnd': 9, 'FastRunLoop': 10, 'FastRunStart': 11, 'GunShoot': 12, 'DrawGun': 13, 'StandToSit': 14}
+
+==================================================
+JavaScript mapping:
+Successfully loaded: /home/driverx/Desktop/ESAMI/Interactive/Homework/Skeletal_Animation/models/assets/rb5.gltf
+Found 29 animations:
+  0: Armature.001|cc02_sideshoot
+    Is walking: False
+  1: Armature.001|hold_gun_fastrun_forward_loop_279387
+    Is walking: False
+  2: Armature.001|hold_gun_fastrun_forward_loop_279387.001
+    Is walking: False
+  3: Armature.001|walk-relaxed_loop_251148
+    Is walking: True
+  4: Armature.001|walk-relaxed_loop_251148.reverse
+    Is walking: True
+    Found reverse walking animation: walk-relaxed_loop_251148 k =walk-relaxed_loop, v = WalkRelaxedLoop
+    Reverse name: WalkRevRelaxedLoop
+  5: Armature.001|walk01_loop_251104
+    Is walking: True
+  6: Armature.001|walk01_loop_251104.reverse
+    Is walking: True
+    Found reverse walking animation: walk01_loop_251104 k =walk01_loop, v = WalkLoop
+    Reverse name: WalkRevLoop
+  7: Armature.002|dual_gun_draw_gun_behind_back_279371
+    Is walking: False
+  8: Armature.002|hold_gun_fastrun_forward_start_279410
+    Is walking: False
+  9: Armature.002|hold_gun_fastrun_forward_start_279410.001
+    Is walking: False
+  10: Armature.002|walk-relaxed_start_251114
+    Is walking: True
+  11: Armature.002|walk-relaxed_start_251114.reverse
+    Is walking: True
+    Found reverse walking animation: walk-relaxed_start_251114 k =walk-relaxed_start, v = WalkRelaxedStart
+    Reverse name: WalkRevRelaxedStart
+  12: Armature.002|walk01_end_251138
+    Is walking: True
+  13: Armature.003|dual_gun_muzdn_mov_cool_shoot_279383
+    Is walking: False
+  14: Armature.004|hold_gun_shooting_279354
+    Is walking: False
+  15: Armature|
+    Is walking: False
+  16: Armature|aerobic-dance_315220
+    Is walking: False
+  17: Armature|crouch_walk_r_againstwall
+    Is walking: True
+  18: Armature|Default
+    Is walking: True
+  19: Armature|hold_gun_break_door_279385
+    Is walking: False
+  20: Armature|hold_gun_fastrun_forward_end_279362
+    Is walking: False
+  21: Armature|hold_gun_fastrun_forward_end_279362.001
+    Is walking: False
+  22: Armature|idle_251087
+    Is walking: True
+  23: Armature|idle_251087.001
+    Is walking: True
+  24: Armature|stand-to-sit_251123
+    Is walking: False
+  25: Armature|stand-to-sit_251123.reverse
+    Is walking: False
+    Found reverse general animation: stand-to-sit_251123
+  26: Armature|walk-relaxed_end_251010
+    Is walking: True
+  27: Armature|walk01_start_251151
+    Is walking: True
+  28: Armature|walk01_start_251151.reverse
+    Is walking: True
+    Found reverse walking animation: walk01_start_251151 k =walk01_start, v = WalkStart
+    Reverse name: WalkRevStart
+
+// Animation mapping for rb5
+static walkAnimations = {
+    WalkRelaxedLoop: {index: 3, next: null},
+    WalkRevRelaxedLoop: {index: 4, next: null},
+    WalkLoop: {index: 5, next: null},
+    WalkRevLoop: {index: 6, next: null},
+    WalkRelaxedStart: {index: 10, next: 'WalkRelaxedLoop'},
+    WalkRevRelaxedStart: {index: 11, next: 'WalkRevRelaxedLoop'},
+    WalkEnd: {index: 12, next: 'Idle'},
+    Default: {index: 18, next: 'Idle'},
+    Idle: {index: 23, next: null},
+    WalkRelaxedEnd: {index: 26, next: 'Idle'},
+    WalkStart: {index: 27, next: 'WalkLoop'},
+    WalkRevStart: {index: 28, next: 'WalkRevLoop'},
+};
+
+static animations = [
+    { name: 'Shoot', description: 'Side shoot', icon: '🎯', index: 0, next: 'Idle' },
+    { name: 'FastRunLoop', description: 'Fast run loop', icon: '🏃', index: 2, next: 'Idle' },
+    { name: 'DrawGun', description: 'Draw gun from back', icon: '🔫', index: 7, next: 'Idle' },
+    { name: 'FastRunStart', description: 'Fast run start', icon: '🏃‍♀️', index: 9, next: 'Idle' },
+    { name: 'CoolShoot', description: 'Cool dual gun shoot', icon: '👉', index: 13, next: 'Idle' },
+    { name: 'GunShoot', description: 'Gun shooting', icon: '🔫', index: 14, next: 'Idle' },
+    { name: 'Dance', description: 'Aerobic dance', icon: '💃', index: 16, next: 'Idle' },
+    { name: 'BreakDoor', description: 'Break door', icon: '🚪', index: 19, next: 'Idle' },
+    { name: 'FastRunEnd', description: 'Fast run end', icon: '🏃‍♂️', index: 21, next: 'Idle' },
+    { name: 'StandToSit', description: 'Stand to sit', icon: '🪑', index: 24, next: 'StandToSitRev' },
+    { name: 'StandToSitRev', description: 'Stand to sit (reverse)', icon: '🪑', index: 25, next: 'Idle' },
+];
+

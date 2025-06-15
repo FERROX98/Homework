@@ -2,7 +2,8 @@ export class CameraControls {
   constructor() {
     this.isVisible = false;
     this.camera = null;
-    this.characterController = null; 
+    this.characterController = null;
+    this.environment = null;
     this.closeBtn = document.getElementById("camera-close-btn");
     
     // fov 
@@ -13,15 +14,48 @@ export class CameraControls {
     this.speedSlider = document.getElementById("speed-slider");
     this.speedValue = document.getElementById("speed-value");
     
+    // Walk animation controls
+    this.walkAnimationSelector = document.getElementById("walk-animation-selector");
+    this.walkAnimationDescription = document.getElementById("walk-animation-description");
+    
+    // Sun position controls
+    this.sunXSlider = document.getElementById("sun-x-slider");
+    this.sunXValue = document.getElementById("sun-x-value");
+    this.sunYSlider = document.getElementById("sun-y-slider");
+    this.sunYValue = document.getElementById("sun-y-value");
+    this.sunZSlider = document.getElementById("sun-z-slider");
+    this.sunZValue = document.getElementById("sun-z-value");
+    
+    // Light intensity controls
+    this.lightIntensitySlider = document.getElementById("light-intensity-slider");
+    this.lightIntensityValue = document.getElementById("light-intensity-value");
+    this.lightingStatus = document.getElementById("lighting-status");
+    
+    // Objects list control
+    this.objectsList = document.getElementById("objects-list");
+    
     this.resetBtn = document.getElementById("reset-camera-settings");
 
     this.panel = document.getElementById("camera-controls-panel");
     this.initEventListeners(); 
   }
 
-  setReferences(camera, characterController) {
+  setReferences(camera, characterController, environment) {
+    console.warn('CameraControls setReferences called');
     this.camera = camera;
     this.characterController = characterController;
+    this.environment = environment;
+    
+    // Set up callback for model list updates
+    if (this.environment && this.environment.setModelsUpdatedCallback) {
+      this.environment.setModelsUpdatedCallback(() => {
+        this.updateObjectsList();
+      });
+    }
+    
+    // Initialize the objects list
+    this.initObjectsList();
+    
     this.updateControls();
   }
   
@@ -54,6 +88,39 @@ export class CameraControls {
       const speed = parseFloat(e.target.value);
       this.speedValue.textContent = speed.toFixed(1);
       this.updateSpeed(speed);
+    });
+
+    // Walk animation selector
+    this.walkAnimationSelector.addEventListener('change', (e) => {
+      const animationType = e.target.value;
+      this.updateWalkAnimationType(animationType);
+      this.updateWalkAnimationDescription(animationType);
+    });
+
+    // Sun position controls
+    this.sunXSlider.addEventListener('input', (e) => {
+      const x = parseFloat(e.target.value);
+      this.sunXValue.textContent = x;
+      this.updateSunPosition();
+    });
+
+    this.sunYSlider.addEventListener('input', (e) => {
+      const y = parseFloat(e.target.value);
+      this.sunYValue.textContent = y;
+      this.updateSunPosition();
+    });
+
+    this.sunZSlider.addEventListener('input', (e) => {
+      const z = parseFloat(e.target.value);
+      this.sunZValue.textContent = z;
+      this.updateSunPosition();
+    });
+
+    // Light intensity control
+    this.lightIntensitySlider.addEventListener('input', (e) => {
+      const intensity = parseFloat(e.target.value);
+      this.lightIntensityValue.textContent = intensity.toFixed(1);
+      this.updateLightIntensity(intensity);
     });
 
     this.resetBtn.addEventListener('click', () => {
@@ -118,7 +185,33 @@ export class CameraControls {
       this.characterController.moveSpeed = 1;
       this.characterController.rotationSpeed = 2.0;
     }
-  
+    
+    // Reset lighting controls
+    if (this.environment) {
+      this.environment.setSunPosition(50, 80, 30);
+      this.environment.setDirectionalLightIntensity(1.0);
+    }
+    
+    // Reset UI controls for sun position
+    if (this.sunXSlider) {
+      this.sunXSlider.value = '50';
+      this.sunXValue.textContent = '50';
+    }
+    if (this.sunYSlider) {
+      this.sunYSlider.value = '80';
+      this.sunYValue.textContent = '80';
+    }
+    if (this.sunZSlider) {
+      this.sunZSlider.value = '30';
+      this.sunZValue.textContent = '30';
+    }
+    
+    // Reset UI controls for lighting
+    if (this.lightIntensitySlider) {
+      this.lightIntensitySlider.value = '1.0';
+      this.lightIntensityValue.textContent = '1.0';
+    }
+    
     this.updateSpeedSliderRange();
     this.updateControls();
   }
@@ -154,4 +247,111 @@ export class CameraControls {
       this.show();
     }
   }
-} 
+
+  updateWalkAnimationType(animationType) {
+    if (!this.characterController) return;
+    
+    console.log(`Changing walk animation type to: ${animationType}`);
+    
+    // Set the walk animation type in the character controller
+    if (this.characterController.setWalkAnimationType) {
+      this.characterController.setWalkAnimationType(animationType);
+    } else {
+      // Fallback: trigger custom event for other components to handle
+      window.dispatchEvent(new CustomEvent('walkAnimationTypeChanged', {
+        detail: { animationType: animationType }
+      }));
+    }
+  }
+
+  updateWalkAnimationDescription(animationType) {
+    const descriptions = {
+      'normal': 'Standard walking animation',
+      'relaxed': 'Slow, relaxed walking style',
+      'fast': 'Fast running animation'
+    };
+    
+    if (this.walkAnimationDescription) {
+      this.walkAnimationDescription.textContent = descriptions[animationType] || 'Unknown animation type';
+    }
+  }
+
+  // Initialize objects list
+  initObjectsList() {
+    if (!this.environment || !this.objectsList) return;
+    
+    this.updateObjectsList();
+  }
+
+  // Update objects list dynamically
+  updateObjectsList() {
+    if (!this.environment || !this.objectsList) return;
+    
+    // Clear existing list
+    this.objectsList.innerHTML = '';
+    
+    // Get models from environment
+    const modelsList = this.environment.getModelsList();
+    
+    if (modelsList.length === 0) {
+      this.objectsList.innerHTML = '<div class="object-item">No objects in scene</div>';
+      return;
+    }
+    
+    // Create list items for each model
+    modelsList.forEach((modelInfo, index) => {
+      const objectItem = document.createElement('div');
+      objectItem.className = 'object-item';
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = `object-${index}`;
+      checkbox.checked = modelInfo.isVisible;
+      checkbox.className = 'object-checkbox';
+      
+      const label = document.createElement('label');
+      label.htmlFor = `object-${index}`;
+      label.textContent = modelInfo.name;
+      label.className = 'object-name';
+      
+      // Add event listener for visibility toggle
+      checkbox.addEventListener('change', (e) => {
+        const isVisible = e.target.checked;
+        this.environment.setModelVisibility(modelInfo.model, isVisible);
+        console.log(`Toggled ${modelInfo.name} visibility: ${isVisible}`);
+      });
+      
+      objectItem.appendChild(checkbox);
+      objectItem.appendChild(label);
+      this.objectsList.appendChild(objectItem);
+    });
+  }
+
+  updateLightIntensity(intensity) {
+    if (!this.environment) return;
+
+    this.environment.setDirectionalLightIntensity(intensity);
+    
+    // Update status
+    if (this.lightingStatus) {
+      this.lightingStatus.textContent = `Light intensity: ${intensity.toFixed(1)} - Directional light follows sun position`;
+    }
+  }
+
+  updateSunPosition() {
+    if (!this.environment) return;
+
+    const x = parseFloat(this.sunXSlider.value);
+    const y = parseFloat(this.sunYSlider.value);
+    const z = parseFloat(this.sunZSlider.value);
+
+    this.environment.setSunPosition(x, y, z);
+    
+    // Update status
+    if (this.lightingStatus) {
+      const intensity = this.lightIntensitySlider ? parseFloat(this.lightIntensitySlider.value) : 1.0;
+      this.lightingStatus.textContent = `Sun: [${x}, ${y}, ${z}] - Light intensity: ${intensity.toFixed(1)}`;
+    }
+  }
+
+}

@@ -7,8 +7,11 @@ import {
 import { Model } from "./model.js";
 import { GLTFUtils } from "./gltf_utils.js";
 
+const debug = true;
+
 export class AnimationUtils {
 
+  // TODO to be checked
   static interpolateVec3(track, t) {
     const times = track.times;
     const values = track.values;
@@ -51,6 +54,7 @@ export class AnimationUtils {
     return vec3.lerp(vec3.create(), v0, v1, alpha);
   }
 
+  // TODO to be checked 
   static interpolateQuat(track, t) {
     const times = track.times;
     const values = track.values;
@@ -97,13 +101,13 @@ export class AnimationUtils {
     return quat.slerp(quat.create(), q0, q1, alpha);
   }
 
-  // ok
+
   static configureAnimationData(model) {
 
     if (!model instanceof Model)
       throw new Error("model must be an instance of Model");
 
-    console.log(`[${model.name}] Configuring animation data...`);
+    if (debug) console.log(`[${model.name}] Configuring animation data...`);
     const json = model.json;
     const bin = model.bin;
 
@@ -112,71 +116,81 @@ export class AnimationUtils {
       return null;
     }
 
-    // Keyframe
-    const animation = model.animation;
+    const animPreproc = []
 
-    // Animation data structure (node --> timeFrame start and end, keyframe values)
-    const animationTracks = new Map();
-    let animationLength = 0;
+    //  Keyframe
+    console.log(`[${model.name}] has ${json.animations.length} animations`, json.animations.map(a => a.name || "none"));
+    for (const animation of json.animations) {
+      const animData = {};
 
-    console.log(`[${model.name}] has ${json.animations.length} animations, processing: ${animation.name || "default"}`);
+      // Animation data structure (node --> timeFrame start and end, keyframe values)
+      const animationTracks = new Map();
+      let animationLength = 0;
 
-    // channel tell us which node to animate and which sampler(keyframe interval) to use and the type of transformation
-    for (const channel of animation.channels) {
-      // each sampler defines a start and an end keyframe and which interpolation method to use
-      // and the transformation pointer
-      const sampler = animation.samplers[channel.sampler];
+      if (debug) console.log(`processing: ${animation.name || "default"}`);
 
-      // target is the node (bone) that will be animated
-      const target = channel.target;
-      const nodeIndex = target.node;
+      // channel tell us which node to animate and which sampler(keyframe interval) to use and the type of transformation
+      for (const channel of animation.channels) {
+        // each sampler defines a start and an end keyframe and which interpolation method to use
+        // and the transformation pointer
+        const sampler = animation.samplers[channel.sampler];
 
-      // type of transformation
-      const path = target.path;
+        // target is the node (bone) that will be animated
+        const target = channel.target;
+        const nodeIndex = target.node;
 
-      // keyframe (time)
-      const inputAccessor = json.accessors[sampler.input];
-      // transformation to apply
-      const outputAccessor = json.accessors[sampler.output];
+        // type of transformation
+        const path = target.path;
 
-      // read the values from the binary
-      const inputView = json.bufferViews[inputAccessor.bufferView];
-      const outputView = json.bufferViews[outputAccessor.bufferView];
+        // keyframe (time)
+        const inputAccessor = json.accessors[sampler.input];
+        // transformation to apply
+        const outputAccessor = json.accessors[sampler.output];
 
-      const typeArrayInput = GLTFUtils.getTypeFromAccessor(inputAccessor);
-      const numComponentsInput = GLTFUtils.getNumComponentsFromAccessor(inputAccessor);
+        // read the values from the binary
+        const inputView = json.bufferViews[inputAccessor.bufferView];
+        const outputView = json.bufferViews[outputAccessor.bufferView];
 
-      // TODO check all in float otherwise gl explodes 
-      const inputArray = new typeArrayInput(
-        bin,
-        (inputView.byteOffset || 0),
-        inputAccessor.count * numComponentsInput
-      );
+        const typeArrayInput = GLTFUtils.getTypeFromAccessor(inputAccessor);
+        const numComponentsInput = GLTFUtils.getNumComponentsFromAccessor(inputAccessor);
 
-      const typeArrayOutput = GLTFUtils.getTypeFromAccessor(outputAccessor);
-      const numComponentsOutput = GLTFUtils.getNumComponentsFromAccessor(outputAccessor);
+        // TODO check all in float otherwise gl explodes 
+        const inputArray = new typeArrayInput(
+          bin,
+          (inputView.byteOffset || 0),
+          inputAccessor.count * numComponentsInput
+        );
 
-      const outputArray = new typeArrayOutput(
-        bin,
-        (outputView.byteOffset || 0),
-        outputAccessor.count * numComponentsOutput
-      );
+        const typeArrayOutput = GLTFUtils.getTypeFromAccessor(outputAccessor);
+        const numComponentsOutput = GLTFUtils.getNumComponentsFromAccessor(outputAccessor);
 
-      // console.log(`[${model.name}] Animation track for node ${nodeIndex} at path ${path}:`, inputArray, outputArray);
-      if (!animationTracks.has(nodeIndex)) {
-        animationTracks.set(nodeIndex, {});
+        const outputArray = new typeArrayOutput(
+          bin,
+          (outputView.byteOffset || 0),
+          outputAccessor.count * numComponentsOutput
+        );
+
+        if (debug) console.log(`[${model.name}] Animation track for node ${nodeIndex} at path ${path}:`, inputArray, outputArray);
+        if (!animationTracks.has(nodeIndex)) {
+          animationTracks.set(nodeIndex, {});
+        }
+
+        // type transformation -->  {times: start time, end time, values: transformation values}
+        animationTracks.get(nodeIndex)[path] = {
+          times: inputArray,
+          values: outputArray,
+        };
+
+        //  animation length
+        const endTime = inputArray[inputArray.length - 1];
+        animationLength = Math.max(animationLength, endTime);
       }
 
-      // type transformation -->  {times: start time, end time, values: transformation values}
-      animationTracks.get(nodeIndex)[path] = {
-        times: inputArray,
-        values: outputArray,
-      };
 
-      //  animation length
-      const endTime = inputArray[inputArray.length - 1];
-      animationLength = Math.max(animationLength, endTime);
-      // console.log(`[${model.name}] Animation length for ${channel.target.node}: ${maxTime}s`);
+      animData.animationTracks = animationTracks;
+      animData.animationLength = animationLength;
+      animData.name = animation.name;
+      animPreproc.push(animData);
     }
 
     // skeleton
@@ -195,17 +209,14 @@ export class AnimationUtils {
         }
       }
     }
+    model.nodeParents = nodeParents;
 
     console.log(`[${model.name}] Node parents:`, nodeParents);
 
-    model.animationTracks = animationTracks;
-    model.animationLength = animationLength;
-    model.nodeParents = nodeParents;
+    model.animPreproc = animPreproc;
   }
 
-  // ok
   static updateJointMatrices(model) {
-   // console.log(`[${model.name}] Updating joint matrices...`);
     let jointMatrices = model.jointMatrices;
     const gl = model.gl;
     gl.useProgram(model.program);
@@ -220,21 +231,32 @@ export class AnimationUtils {
       for (let i = 0; i < model.jointMatrices.length; i++) {
         flatJointData.set(model.jointMatrices[i], i * 16);
       }
-      gl.uniformMatrix4fv(jointMatrixLoc, false, flatJointData);      
+      gl.uniformMatrix4fv(jointMatrixLoc, false, flatJointData);
     }
   }
 
-  // ok
   static updateAnimation(t, model) {
     if (!model.jointNodes || model.jointNodes.length === 0 || !model.animationTracks.size) {
-      return;
+      return false;
     }
 
     // loop
-    // TODO allow to stop 
-    if (model.animationLength > 0) {
-      t = t % model.animationLength;
+    // Check if the animation has completed a full cycle
+    if (model.animationLength > 0 && t >= model.animationLength) {
+      // console.warn(`[${this.name}] Animation updated at time: ${t.toFixed(2)}s`);
+      if (model.switchAnimation()) {
+        console.log(`[${model.name}] Animation completed a full cycle, switching to next animation.`);
+        let now = performance.now();
+        model.startTime =  (model.startTime) ? model.startTime : now;
+
+        let elapsedSeconds = (now - this.startTime) / 1000;
+        let animTime = elapsedSeconds * this.animationSpeed;
+
+        t = animTime;
+      }
     }
+    
+    t = t % model.animationLength
 
     const localTransforms = model.jointNodes.map(() => mat4.create());
     const jointWorld = model.jointNodes.map(() => mat4.create());
@@ -312,6 +334,7 @@ export class AnimationUtils {
     }
 
     this.updateJointMatrices(model);
+    return false;
   }
 
 }

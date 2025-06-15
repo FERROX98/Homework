@@ -1,37 +1,40 @@
-import { mat3, mat4, quat, vec3, } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
+import { mat3, mat4 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
 
 import * as utils from '../shaders/shader_utils.js';
 import { AnimationUtils } from './animation_utils.js';
 import { GLTFUtils } from './gltf_utils.js';
 import { TextureUtils } from './texture_utils.js';
 
+const debug = true;
+
 export class Model {
-  //ok
-  constructor(gl, modelPath) {
+
+  constructor(gl, modelPath, animated = false, visible = true) {
     this.gl = gl;
     this.modelPath = modelPath;
-    
     this.name = modelPath.split('/').pop().split('.')[0];
-    this.isVisible = true;
+    this.isVisible = visible;
     this.texturesLoaded = false;
 
     this.program = null;
     this.isLoaded = false;
 
+    this.animPreproc = [];
+
     this.buffersList = [];
     this.modelMatrix = mat4.create();
+    this.animated = animated;
 
     // joint data
     this.jointMatrices = [];
     this.nodeParents = [];
     this.inverseBindMatrices = [];
 
-    // Animation data
+    // Animation data 
     this.animations = [];
-    this.animationTracks = new Map();
-    this.animationSpeed = 0.5; 
-    this.animationLength = 0;
-    this.animationIndexSelected = 0;
+    // TODO UPDATE with move speed
+    this.animationSpeed = 0.5;
+    this.animationIndexSelected = null;
 
     utils.resolveShaderPaths(this.name).then((shadersPath) => {
       // shader 
@@ -59,18 +62,38 @@ export class Model {
         GLTFUtils.loadGLTF(this, `models/assets/${modelPath}`).then(() => {
           this.createBuffers();
 
-          // Initialize joint pose nodes and other stuff 
-          this.initAnimation();
+          if (this.animated)
+            this.initAnimation();
+
           this.initTextures();
           this.isLoaded = true;
-          console.log(`[${this.name}] model loaded successfully.`);
+          console.warn(`[${this.name}] model loaded successfully.`);
 
         });
       });
     });
   }
 
-  //ok
+  get animationTracks() {
+    return this.animPreproc[this.animationIndexSelected].animationTracks;
+  }
+
+  get animationReversedTracks() {
+    return this.animReversedPreproc[this.animationIndexSelected].animationTracks;
+  }
+
+  get animationLength() {
+    if (this.animations && this.animations.length > 0) {
+      return this.animPreproc[this.animationIndexSelected].animationLength;
+    }
+    return 0;
+  }
+
+  switchAnimation() {
+    // repeat last animation in loop
+    return true;
+  }
+
   initTextures() {
     for (const buffers of this.buffersList) {
       if (buffers.textures) {
@@ -87,25 +110,25 @@ export class Model {
     return this.animations[this.animationIndexSelected];
   }
 
-  // TODO to be modified 
   selectAnimation(index) {
     if (index < 0 || index >= this.animations.length) {
-      console.warn(`[${this.name}] Invalid animation index: ${index}`); 
+      console.warn(`[${this.name}] Invalid animation index: ${index}`);
       return;
     }
+    this.startTime = null;
     this.animationIndexSelected = index;
   }
 
-  // ok
+  // TODO move in base_model
   toggleTextures(enable) {
     const gl = this.gl;
     gl.useProgram(this.program);
     gl.uniform1i(
       gl.getUniformLocation(this.program, 'isTextureEnabled'),
-        enable ? 1 : 0);
+      enable ? 1 : 0);
   }
 
-  // ok at init time
+  // TODO move in base_model
   createBuffers() {
     const gl = this.gl;
     for (const buffers of this.buffersList) {
@@ -116,7 +139,7 @@ export class Model {
         buffers.vertPosBuffer = gl.createBuffer();
         this.bindAndSetBuffer(buffers.position, buffers.vertPosBuffer);
       }
-      
+
       buffers.normalLoc = gl.getAttribLocation(this.program, 'normal');
       if (buffers.normal && buffers.normalLoc !== -1) {
         buffers.normalBuffer = gl.createBuffer();
@@ -149,44 +172,56 @@ export class Model {
     }
   }
 
-  // ok at init time 
-  bindAndSetBuffer(data, buffer, typeElement=this.gl.ARRAY_BUFFER, typeDraw = this.gl.STATIC_DRAW) {
+  // TODO move in base_model
+  bindAndSetBuffer(data, buffer, typeElement = this.gl.ARRAY_BUFFER, typeDraw = this.gl.STATIC_DRAW) {
     const gl = this.gl;
     // select the buffer
     gl.bindBuffer(typeElement, buffer);
     // insert buffers.position into the buffers.vertPosBuffer
     gl.bufferData(typeElement, data, typeDraw);
-    
-  } 
 
-  // ok at draw time
+  }
+
+  // TODO move in base_model
   bindAndEnableBuffers(location, buffer, size, type = this.gl.FLOAT) {
     const gl = this.gl;
     gl.useProgram(this.program);
     if (buffer) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.vertexAttribPointer(location, size, type, false, 0, 0);
-        gl.enableVertexAttribArray(location);
-      }
-  } 
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.vertexAttribPointer(location, size, type, false, 0, 0);
+      gl.enableVertexAttribArray(location);
+    }
+  }
 
-  // ok
+  handleAnimation() {;
+    if (this.animated && this.jointNodes
+      && this.jointNodes.length > 0
+      && this.animationIndexSelected !== null
+      && this.animationTracks.size > 0) {
+
+      if (debug) console.warn(`[${this.name}] Updating animation...`);
+
+      if (!this.startTime) {
+        this.startTime = performance.now();
+      }
+      if (!this.animationSpeed) {
+        this.animationSpeed = 4.0;
+      }
+
+      let now = performance.now();
+      let elapsedSeconds = (now - this.startTime) / 1000;
+      let animTime = elapsedSeconds * this.animationSpeed;
+
+      AnimationUtils.updateAnimation(animTime, this)
+    }
+  }
+
   render(proj, view, lights, transform = null) {
-    if (!this.isLoaded) 
+    if (!this.isLoaded)
       return 0;
 
     const gl = this.gl;
     gl.useProgram(this.program);
-
-    // Only update animation if we have joint nodes and valid animation data
-    if (this.jointNodes && this.jointNodes.length > 0 && this.animationTracks.size > 0) {
-     // console.warn(`[${this.name}] Updating animation...`);
-      const now = performance.now();  
-      const elapsedSeconds = (now - this.startTime) / 1000;
-      const animTime = elapsedSeconds * this.animationSpeed;
-      
-      AnimationUtils.updateAnimation(animTime, this);
-    }
 
     const modelMatrix = transform || this.modelMatrix;
 
@@ -209,15 +244,16 @@ export class Model {
     gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
 
     let triangleCount = 0;
+    this.handleAnimation();
 
     for (const buffers of this.buffersList) {
       if (this.texturesLoaded)
         TextureUtils.setTexture(this, buffers.textures);
-      
+
       this.bindAndEnableBuffers(buffers.vertPosLoc, buffers.vertPosBuffer, 3);
       this.bindAndEnableBuffers(buffers.normalLoc, buffers.normalBuffer, 3);
       this.bindAndEnableBuffers(buffers.texCoordLoc, buffers.texCoordBuffer, 2);
-      
+
       if (buffers.jointLoc !== -1 && buffers.jointBuffer) {
         this.bindAndEnableBuffers(buffers.jointLoc, buffers.jointBuffer, 4);
       }
@@ -227,31 +263,30 @@ export class Model {
 
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indexBuffer);
       gl.drawElements(gl.TRIANGLES, buffers.indexCount, gl.UNSIGNED_SHORT, 0);
-      triangleCount += buffers.indexCount/3;
+      triangleCount += buffers.indexCount / 3;
     }
 
     return triangleCount;
   }
 
-  // ok
   initAnimation() {
- 
+
     if (!this.animations || this.animations.length === 0) {
-     // console.warn(`[${this.name}] No animations found`);
       return;
     }
-    
+
     if (this.jointNodes && this.jointNodes.length > 0) {
       this.jointMatrices = this.jointNodes.map(() => {
-      const mat = mat4.create();
-      return mat;
+        const mat = mat4.create();
+        return mat;
       });
     } else {
       this.jointMatrices = [];
     }
-    
-    this.startTime = performance.now();
+
     AnimationUtils.updateJointMatrices(this);
   }
+
+
 
 }

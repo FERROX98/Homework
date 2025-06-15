@@ -28,17 +28,17 @@ export class TextureUtils {
                 if (debug) console.log(`[${model.name}] Successfully loaded texture: ${url}`);
                 resolve(tex);
             };
-            // img.onerror = (err) => {
-            //     console.error(`[${model.name}] Error loading texture: ${url}`, err);
-            //     console.error(`[${model.name}] Image error details:`, {
-            //         src: img.src,
-            //         naturalWidth: img.naturalWidth,
-            //         naturalHeight: img.naturalHeight,
-            //         complete: img.complete
-            //     });
-                //gl.deleteTexture(tex);
-            //     reject(new Error(`Failed to load texture: ${url}`));
-            // };
+            img.onerror = (err) => {
+                console.error(`[${model.name}] Error loading texture: ${url}`, err);
+                console.error(`[${model.name}] Image error details:`, {
+                    src: img.src,
+                    naturalWidth: img.naturalWidth,
+                    naturalHeight: img.naturalHeight,
+                    complete: img.complete
+                });
+                gl.deleteTexture(tex);
+                reject(new Error(`Failed to load texture: ${url}`));
+            };
              
             if (debug) console.log(`[${model.name}] Setting img.src to: ${url}`);
             img.src = url;
@@ -113,7 +113,7 @@ export class TextureUtils {
                 gl.activeTexture(gl.TEXTURE0 + unit);
                 gl.bindTexture(gl.TEXTURE_2D, tex || fallback);
                 gl.uniform1i(uniformLoc, unit);
-                //console.log(`[${model.name}] Bound ${uniform} to texture unit ${unit}, using ${tex ? 'loaded' : 'fallback'} texture`);
+               // console.log(`[${model.name}] Bound ${uniform} to texture unit ${unit}, using ${tex ? 'loaded' : 'fallback'} texture`);
             }
         }
     }

@@ -6,4 +6,6 @@ dist/*
 Blend_Models/*
 Skeletal_Animation/models/blender_models/*
 models/blender_models/*
+Skeletal_Animation/models/blender_model/*
 
+Skeletal_Animation/models/blender_model/Downloaded/*
