@@ -5,7 +5,7 @@ import { AnimationUtils } from './animation_utils.js';
 import { GLTFUtils } from './gltf_utils.js';
 import { TextureUtils } from './texture_utils.js';
 
-const debug = true;
+const debug = false;
 
 export class Model {
 
@@ -91,7 +91,7 @@ export class Model {
 
   switchAnimation() {
     // repeat last animation in loop
-    return true;
+    return false;
   }
 
   initTextures() {
@@ -115,7 +115,7 @@ export class Model {
       console.warn(`[${this.name}] Invalid animation index: ${index}`);
       return;
     }
-    this.startTime = null;
+    this.startTime = performance.now();  // Commented to prevent animation flicker
     this.animationIndexSelected = index;
   }
 

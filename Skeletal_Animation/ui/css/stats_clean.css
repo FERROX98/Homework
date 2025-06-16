@@ -1,0 +1,23 @@
+/* Stats container - only used styles */
+#stats-container .stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 2px 0;
+}
+
+#stats-container .stat-label {
+  color: #aaa;
+  margin-right: 10px;
+}
+
+#stats-container .stat-value {
+  color: #0f0;
+}
+
+#stats-container .stat-value.warning {
+  color: #ff0;
+}
+
+#stats-container .stat-value.danger {
+  color: #f00;
+}

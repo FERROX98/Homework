@@ -6,9 +6,9 @@
   <title>Skeletal Animation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="data:," />
-  <link rel="stylesheet" href="./ui/stats.css" />
-  <link rel="stylesheet" href="./ui/ui.css" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./ui/css/stats_clean.css" />
+  <link rel="stylesheet" href="./ui/css/ui_clean.css" />
+  <link rel="stylesheet" href="./ui/css/styles_clean.css" />
 </head>
 
 <body>
@@ -127,9 +127,17 @@
       <!-- Speed Section -->
       <div class="camera-section">
         <div class="camera-section-title">Movement Speed</div>
-        <label>Speed: <span id="speed-value">5.0</span></label>
-        <input type="range" id="speed-slider" min="1" max="20" step="0.5" value="10">
-        <div class="range-labels"><span>1</span><span>10.0</span></div>
+        <label>Speed: <span id="speed-value">1.5</span></label>
+        <input type="range" id="speed-slider" min="0.1" max="3" step="0.1" value="1.5">
+        <div class="range-labels"><span>0.1</span><span>3</span></div>
+      </div>
+
+      <!-- Rotation Speed Section -->
+      <div class="camera-section">
+        <div class="camera-section-title">Rotation Speed</div>
+        <label>Rotation: <span id="rotation-speed-value">0.28</span></label>
+        <input type="range" id="rotation-speed-slider" min="0.1" max="0.8" step="0.05" value="0.28">
+        <div class="range-labels"><span>0.1</span><span>0.8</span></div>
       </div>
 
       <!-- Walk Animation Type Section -->
@@ -140,24 +148,9 @@
           <option value="relaxed">Relaxed Walk</option>
           <option value="fast">Fast Run</option>
         </select>
-        <div class="walk-animation-info">
-          <span id="walk-animation-description">Standard walking animation</span>
-        </div>
       </div>
 
-      <!-- Foot Tracking Section -->
-      <div class="camera-section">
-        <div class="camera-section-title">Foot Tracking</div>
-        <label class="checkbox-container">
-          <input type="checkbox" id="foot-tracking-toggle" checked>
-          <span class="checkmark"></span>
-          Enable Foot-Based Movement
-        </label>
-        <div class="foot-tracking-info">
-          <span id="foot-tracking-status">Tracks foot movement in animation for realistic character motion</span>
-        </div>
-      </div>
-
+  
       <!-- Lighting Control Section -->
       <div class="camera-section">
         <div class="camera-section-title">Sun & Lighting</div>
@@ -167,7 +160,6 @@
           <label>Scene Objects:</label>
           <div class="objects-list-container">
             <div id="objects-list" class="objects-list">
-              <!-- Objects will be populated dynamically -->
             </div>
           </div>
         </div>

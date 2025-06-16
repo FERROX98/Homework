@@ -937,7 +937,7 @@ select, input[type="range"] {
   box-shadow: 0 2px 4px rgba(255, 165, 0, 0.3);
 }
 
-/* Objects list control styles */
+
 .objects-list-container {
   position: relative;
   margin: 8px 0;
@@ -980,7 +980,6 @@ select, input[type="range"] {
   margin-left: 8px;
 }
 
-/* Custom scrollbar for camera controls panel */
 #camera-controls-panel::-webkit-scrollbar {
   width: 8px;
 }

@@ -7,7 +7,7 @@ import {
 import { Model } from "./model.js";
 import { GLTFUtils } from "./gltf_utils.js";
 
-const debug = true;
+const debug = false;
 
 export class AnimationUtils {
 
@@ -240,19 +240,20 @@ export class AnimationUtils {
       return false;
     }
 
+    if(debug) console.log(`[${this.name}] Updating animation at time: ${t.toFixed(2)}s for model: ${model.name}`, model.currentAnimation);
     // loop
     // Check if the animation has completed a full cycle
     if (model.animationLength > 0 && t >= model.animationLength) {
-      // console.warn(`[${this.name}] Animation updated at time: ${t.toFixed(2)}s`);
-      if (model.switchAnimation()) {
-        console.log(`[${model.name}] Animation completed a full cycle, switching to next animation.`);
+      const switched = model.switchAnimation();
+      if (switched) {
+        if (debug) console.warn(`[${model.name}] Animation completed ${model.currentAnimation.name} a full cycle, switching to next animation. ${t}`);
         let now = performance.now();
-        model.startTime =  (model.startTime) ? model.startTime : now;
-
-        let elapsedSeconds = (now - this.startTime) / 1000;
-        let animTime = elapsedSeconds * this.animationSpeed;
+  
+        let elapsedSeconds  = (now - model.startTime) / 1000;
+        let animTime = elapsedSeconds * model.animationSpeed;
 
         t = animTime;
+        if (debug) console.warn(`[${this.name}] Animation time reset to: ${t.toFixed(2)}s`);
       }
     }
     

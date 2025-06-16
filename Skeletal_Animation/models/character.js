@@ -1,7 +1,7 @@
 import { Model } from './model.js';
 import { CharacterAnimations } from '../controllers/character_animations.js';
 
-const debug = true;
+const debug = false;
 
 export class Character extends Model {
   constructor(gl, modelPath, animated = false, visible = true) {
@@ -11,6 +11,7 @@ export class Character extends Model {
 
     this.isMovingForward = false;
     this.isMovingBackward = false;
+    this.animationSpeed = 0.4; 
 
     setTimeout(() => {
       if (this.isLoaded)
@@ -27,10 +28,14 @@ export class Character extends Model {
   setStartAnimationWalk(forward = true) {
     this.isMovingForward = forward;
     this.isMovingBackward = !forward;
-
+    if(debug) console.log(`[${this.name}] Setting ${this.currentWalkType} start walk animation: ${forward ? 'forward' : 'backward'}`);
     if (forward) {
-      this.setAnimation(CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).start);
+      const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).start;
+      if (debug) console.log(`[${this.name}] Setting ${this.currentWalkType} start walk animation: ${walkKey}`);
+      this.setAnimation(walkKey);
     } else {
+      const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).revStart;
+      if (debug) console.log(`[${this.name}] Setting ${this.currentWalkType} start reverse walk animation: ${walkKey}`);
       this.setAnimation(CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).revStart);
     }
   }
@@ -40,18 +45,31 @@ export class Character extends Model {
     this.isMovingBackward = false;
 
     if (forward) {
-      this.setAnimation(CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).end);
+      const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).end;
+      if (debug) console.log(`[${this.name}] Setting ${this.currentWalkType} end walk animation: ${walkKey}`);
+      this.setAnimation(walkKey);
     } else {
+      const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).revEnd;
+      if (debug) console.log(`[${this.name}] Setting ${this.currentWalkType} end reverse walk animation: ${walkKey}`);
       this.setAnimation(CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).revEnd);
     }
   }
 
+  resetAllAnimationObjects() {
+    if (this.chair)
+      this.chair.isVisible = false;
+  }
+
+
   switchAnimation() {
+
+    const switched = this.currentAnimation.next ? true : false;
+    if (this.currentAnimation.next === 'Idle') 
+          this.resetAllAnimationObjects();
+
     if (this.currentAnimation.next) {
       if (debug) console.log(`[${this.name}] Switching from ${this.currentAnimation.name} to next animation: ${this.currentAnimation.next}`);
       let anim = null;
-      if (this.currentAnimation.name === 'StandToSitRev')
-        this.chair.isVisible = false;
 
       if (CharacterAnimations.isWalkAnimation(this.currentAnimation.next)) {
         anim = CharacterAnimations.getWalkAnimationByName(this.currentAnimation.next);
@@ -64,7 +82,7 @@ export class Character extends Model {
       if (anim) {
         this.setAnimation(anim.name);
       } else {
-        console.warn(`[${this.name}] Animation ${this.currentAnimation.next} not found, setting to Idle.`);
+        console.error(`[${this.name}] Animation ${this.currentAnimation.next} not found, setting to Idle.`);
         this.setAnimation('Idle');
       }
 
@@ -72,8 +90,9 @@ export class Character extends Model {
       console.warn(`[${this.name}] looping ${this.currentAnimation.name}.`);
       //this.setAnimation('Idle');
     }
-
-    return this.currentAnimation.next;
+    
+    if (debug && switched) console.log(`[${this.name}] Animation switched to: ${this.currentAnimation.name} (switched : ${switched})`);
+    return switched;
   }
 
   setAnimation(animationName) {

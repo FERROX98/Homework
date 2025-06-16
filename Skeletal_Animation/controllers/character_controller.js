@@ -137,7 +137,7 @@ export class CharacterController {
           console.log('Stopped moving forward');
 
           if (this.model && !this.camera.isOrbital) {
-            this.model.setEndAnimationWalk(false);
+            this.model.setEndAnimationWalk();
           }
         }
         if (key === 's' || key === 'arrowdown') {
@@ -145,7 +145,7 @@ export class CharacterController {
           console.log('Stopped moving backward');
 
           if (this.model && !this.camera.isOrbital) {
-            this.model.setEndAnimationWalk(true);
+            this.model.setEndAnimationWalk(false);
           }
         }
         e.preventDefault();
@@ -480,5 +480,11 @@ export class CharacterController {
     console.log('====================');
   }
 
+  setWalkAnimationType(walkType) {
+    if (!this.model)
+      return;
+
+    this.model.currentWalkType = walkType;
+  }
 
 }

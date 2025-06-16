@@ -201,7 +201,7 @@ def generate_js_animation_mapping(name):
             ui_info = ui_mapping[anim_name]
             # Define next animation for general animations
             if anim_name == 'StandToSit':
-                next_anim = 'StandToSit'  # Loops to itself
+                next_anim = 'StandToSitRev'  # Loops to itself
             else:
                 next_anim = 'Idle'  # Most animations return to idle
             

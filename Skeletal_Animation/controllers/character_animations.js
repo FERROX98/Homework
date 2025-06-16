@@ -4,13 +4,13 @@ export const walkAnimations = [
     { name: 'WalkLoop', index: 5, next: null },
     { name: 'WalkRevLoop', index: 6, next: null },
     { name: 'WalkRelaxedStart', index: 10, next: 'WalkRelaxedLoop' },
-    { name: 'WalkRevRelaxedStart', index: 11, next: 'WalkRevRelaxedLoop' },
+    { name: 'WalkRevRelaxedStart', index: 4, next: 'WalkRevRelaxedLoop' },
     { name: 'WalkEnd', index: 12, next: 'Idle' },
     { name: 'Default', index: 18, next: 'Idle' },
     { name: 'Idle', index: 23, next: null },
     { name: 'WalkRelaxedEnd', index: 26, next: 'Idle' },
     { name: 'WalkStart', index: 27, next: 'WalkLoop' },
-    { name: 'WalkRevStart', index: 28, next: 'WalkRevLoop' },
+    { name: 'WalkRevStart', index: 6, next: 'WalkRevLoop' },
 ];
 
 export const animations = [
@@ -70,7 +70,7 @@ export class CharacterAnimations {
                 start: 'WalkRelaxedStart',
                 loop: 'WalkRelaxedLoop', 
                 end: 'WalkRelaxedEnd',
-                revStart: 'WalkRelaxedLoop',
+                revStart: 'WalkRevRelaxedLoop',
                 revLoop: 'WalkRevLoop',
                 revEnd: 'WalkRelaxedEnd'
                 };
