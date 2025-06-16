@@ -1,13 +1,15 @@
 import { TextureUtils } from '../models/utils/texture_utils.js';
 import * as utils from '../shaders/shader_utils.js';
-import { mat4 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
+import { mat4, mat3 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
+import { BaseModel } from '../models/base_model.js';
+
 const vsPath = 'shaders/ground/vertex.glsl';
 const fsPath = 'shaders/ground/fragment.glsl';
 
-class Ground {
-  // ok
+export class Ground extends BaseModel {
+
   constructor(gl) {
-    this.gl = gl;
+    super(gl);
     this.isLoad = false;
     this.texturesLoaded = false;
     this.model = mat4.create();
@@ -27,26 +29,27 @@ class Ground {
       } else {
         console.error('Failed to initialize ground shader program');
       }
+
+      this.uniforms = {
+          projection: gl.getUniformLocation(program, 'projection'),
+          view: gl.getUniformLocation(program, 'view'),
+          model: gl.getUniformLocation(program, 'model'),
+          ambientLight: gl.getUniformLocation(program, 'ambientLight'),
+          ambientIntensity: gl.getUniformLocation(program, 'ambientIntensity'),
+          dirLightDir: gl.getUniformLocation(program, 'dirLightDir'),
+          dirLightColor: gl.getUniformLocation(program, 'dirLightColor'),
+          normalMatrix: gl.getUniformLocation(program, 'normalMatrix'),
+          isTextureEnabled: gl.getUniformLocation(program, 'isTextureEnabled'),
+        };
     });
   }
 
-  // ok
   initTexture() {
-    TextureUtils.initUniforms(this, this.textures);
+    TextureUtils.setTexture(this, this.textures, true);
     this.toggleTextures(true);
     this.texturesLoaded = true;
   }
 
-  // ok
-  toggleTextures(enable) {
-    const gl = this.gl;
-    gl.useProgram(this.program);
-    gl.uniform1i(
-      gl.getUniformLocation(this.program, 'isTextureEnabled'),
-      enable ? 1 : 0);
-  }
-
-  //ok
   async loadGroundTextures() {
     const gl = this.gl;
     gl.useProgram(this.program);
@@ -64,65 +67,59 @@ class Ground {
     };
   }
 
-  // ok
-  async loadTexture(url) {
-    const gl = this.gl;
-    return new Promise((resolve, reject) => {
-      const texture = gl.createTexture();
-      const image = new Image();
-
-      image.onload = () => {
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-        gl.generateMipmap(gl.TEXTURE_2D);
-        resolve(texture);
-      };
-
-      image.onerror = () => {
-        reject(new Error(`[Ground] Failed to load texture: ${url}`));
-      };
-
-      image.src = url;
-    });
-  }
-
-  // ok
-  initFallbackTexture() {
-    TextureUtils.createNaturalFallbackTexture(this);
-  }
-
-  // ok
   initGeometry(size) {
     const gl = this.gl;
 
     const quad = this.createGroundQuad(size);
+    
     this.vertPos = gl.getAttribLocation(this.program, 'position');
+    this.vertNormal = gl.getAttribLocation(this.program, 'normal');
+    this.vertTexCoords = gl.getAttribLocation(this.program, 'textureCoords');
 
-    const vertPosLoc = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertPosLoc);
-    gl.bufferData(gl.ARRAY_BUFFER, quad.vertices, gl.STATIC_DRAW);
+    // Position
+    this.vertPosLoc = gl.createBuffer();
+    this.bindAndSetBuffer(quad.positions, this.vertPosLoc, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
 
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, quad.indices, gl.STATIC_DRAW);
+    // Normal
+    this.vertNormalLoc = gl.createBuffer();
+    this.bindAndSetBuffer(quad.normals, this.vertNormalLoc, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+
+    // Texture
+    this.vertTexCoordsLoc = gl.createBuffer();
+    this.bindAndSetBuffer(quad.textureCoords, this.vertTexCoordsLoc, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+
+    // Index
+    this.indexBuffer = gl.createBuffer();
+    this.bindAndSetBuffer(quad.indices, this.indexBuffer, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
 
     this.groundIndexCount = quad.indices.length;
-    this.vertPosLoc = vertPosLoc;
-    this.indexBuffer = indexBuffer;
   }
 
-  // ok
   createGroundQuad(size = 100) {
-    const vertices = new Float32Array([
-      -size, 0, - size,
-      size, 0, -size,
-      size, 0, size,
-      -size, 0, size
+    const positions = new Float32Array([
+      -size, 0, -size,
+       size, 0, -size,
+       size, 0,  size,
+      -size, 0,  size
+    ]);
+
+    const normals = new Float32Array([
+      0, 1, 0,
+      0, 1, 0,
+      0, 1, 0,
+      0, 1, 0 
+    ]);
+
+    const textureCoords = new Float32Array([
+      0.0, 0.0,
+      1.0, 0.0,
+      1.0, 1.0,
+      0.0, 1.0 
     ]);
 
     const indices = new Uint16Array([0, 1, 2, 0, 2, 3]);
-    return { vertices, indices };
+    
+    return { positions, normals, textureCoords, indices };
   }
 
   render(proj, view, lights) {
@@ -136,30 +133,40 @@ class Ground {
 
     const model = this.model;
 
-    gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'projection'), false, proj);
-    gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'view'), false, view);
-    gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'model'), false, model);
+    // vertex
+    gl.uniformMatrix4fv(this.uniforms.projection, false, proj);
+    gl.uniformMatrix4fv(this.uniforms.view, false, view);
+    gl.uniformMatrix4fv(this.uniforms.model, false, model);
 
-    if (lights) {
-      gl.uniform3fv(gl.getUniformLocation(this.program, 'lightPos'), lights.lightPos || [0, 10, 0]);
-      gl.uniform3fv(gl.getUniformLocation(this.program, 'lightColor'), lights.lightColor || [1, 1, 1]);
-      gl.uniform3fv(gl.getUniformLocation(this.program, 'dirLightDir'), lights.dirLightDir || [0, -1, 0]);
-      gl.uniform3fv(gl.getUniformLocation(this.program, 'dirLightColor'), lights.dirLightColor || [1, 1, 1]);
-    }
+    // fragment
+    gl.uniform3fv(this.uniforms.dirLightDir, lights.dirLightDir);
+    gl.uniform3fv(this.uniforms.dirLightColor, lights.dirLightColor);
+    gl.uniform3fv(this.uniforms.ambientLight, lights.ambientLight);
+    gl.uniform1f(this.uniforms.ambientIntensity, lights.ambientIntensity);
+    
+  
+    const normalMatrix = mat3.create();
+    mat3.fromMat4(normalMatrix, model);
+    gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
 
-    if (this.texturesLoaded)
+    if (this.texturesLoaded) 
       TextureUtils.setTexture(this, this.textures);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertPosLoc);
-    gl.vertexAttribPointer(this.vertPos, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(this.vertPos);
+    if (this.vertPos !== -1) {
+      this.bindAndEnableBuffers(this.vertPos, this.vertPosLoc, 3);
+    }
+    
+    if (this.vertNormal !== -1) {
+      this.bindAndEnableBuffers(this.vertNormal, this.vertNormalLoc, 3);
+    }
+    
+    if (this.vertTexCoords !== -1) {
+      this.bindAndEnableBuffers(this.vertTexCoords, this.vertTexCoordsLoc, 2);
+    }
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
     gl.drawElements(gl.TRIANGLES, this.groundIndexCount, gl.UNSIGNED_SHORT, 0);
 
     return this.groundIndexCount / 3;
   }
-
 }
-
-export { Ground };

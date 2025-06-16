@@ -4,7 +4,6 @@ const debug = false;
 
 export class TextureUtils {
 
-    // ok
     static async loadTextureImage(model, url) {
         if (!model instanceof Model)
             throw new Error("model must be an instance of Model");
@@ -28,6 +27,7 @@ export class TextureUtils {
                 if (debug) console.log(`[${model.name}] Successfully loaded texture: ${url}`);
                 resolve(tex);
             };
+
             img.onerror = (err) => {
                 console.error(`[${model.name}] Error loading texture: ${url}`, err);
                 console.error(`[${model.name}] Image error details:`, {
@@ -44,11 +44,8 @@ export class TextureUtils {
             img.src = url;
         }
         );
-        
-        
     }
 
-    // ok
     static createFallbackTextures(model) {
         const gl = model.gl;
         gl.useProgram(model.program);
@@ -72,8 +69,7 @@ export class TextureUtils {
         };
     }
 
-    // ok
-    static setTexture(model, textures) {
+    static setTexture(model, textures, init=false) {
         const gl = model.gl;
         gl.useProgram(model.program);
 
@@ -89,32 +85,11 @@ export class TextureUtils {
             if (uniformLoc !== null) {
                 gl.activeTexture(gl.TEXTURE0 + unit);
                 gl.bindTexture(gl.TEXTURE_2D, tex || fallback);
-                //console.log(`[${model.name}] Bound ${uniform} to texture unit ${unit}, using ${tex ? 'loaded' : 'fallback'} texture`);
-            } else {
-                //console.warn(`[${model.name}] Uniform ${uniform} not found in shader`);
-            }
+                if (init)
+                     gl.uniform1i(uniformLoc, unit);
+
+            } 
         }
     }
 
-    // ok
-    static initUniforms(model, textures) {
-        const gl = model.gl;
-        gl.useProgram(model.program);
-      
-        const units = [
-            { tex: textures.color, fallback: model.fallbackTextures.color, uniform: 'colorTex', unit: 0 },
-            { tex: textures.metalRough, fallback: model.fallbackTextures.metalRough, uniform: 'metalRoughTex', unit: 1 },
-            { tex: textures.emission, fallback: model.fallbackTextures.emission, uniform: 'emissionTex', unit: 2 },
-            { tex: textures.normal, fallback: model.fallbackTextures.normal, uniform: 'normalTex', unit: 3 },
-        ];
-        for (const {tex, fallback, uniform, unit} of units) {
-            const uniformLoc = gl.getUniformLocation(model.program, uniform);
-            if (uniformLoc !== null) {
-                gl.activeTexture(gl.TEXTURE0 + unit);
-                gl.bindTexture(gl.TEXTURE_2D, tex || fallback);
-                gl.uniform1i(uniformLoc, unit);
-               // console.log(`[${model.name}] Bound ${uniform} to texture unit ${unit}, using ${tex ? 'loaded' : 'fallback'} texture`);
-            }
-        }
-    }
 }

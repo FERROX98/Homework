@@ -4,7 +4,7 @@ import {
 } from "https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js";
 
 export class Camera {
-  // ok
+
   constructor(canvas) {
 
     this.canvas = canvas;
@@ -31,13 +31,13 @@ export class Camera {
 
     this.cameraMode = 'orbital';
 
-    this.thirdPersonPosition = vec3.create();
+    this.thirdPersonCameraPosition = vec3.create();
     this.thirdPersonTarget = vec3.create();
     this.thirdPersonRadius = 12.0;
     this.thirdPersonAzimuth = Math.PI;
     this.thirdPersonElevation = Math.PI / 6;
     this.thirdPersonMinRadius = 3.0;
-    this.thirdPersonMaxRadius = 35.0;
+    this.thirdPersonMaxRadius = 50.0;
 
     this.firstPersonPosition = vec3.create();
     this.firstPersonRotation = 0;
@@ -46,18 +46,11 @@ export class Camera {
     this.firstPersonMinPitch = -Math.PI / 2 + 0.1;
     this.onFirstPersonRotationChange = null;
 
-    // TODO fix
-    this.thirdPersonAutoFollow = true;
-    this.thirdPersonFollowSpeed = 2.0;
-    this.thirdPersonFollowDeadzone = 0.1;
-    this.thirdPersonTargetAzimuth = this.thirdPersonAzimuth;
-
     this.initEvents();
     this.updateView();
     this.updateProjection();
   }
 
-  // ok
   initEvents() {
     let isDragging = false;
     let lastX = 0;
@@ -72,6 +65,7 @@ export class Camera {
     this.canvas.addEventListener("mouseup", () => (isDragging = false));
     this.canvas.addEventListener("mouseleave", () => (isDragging = false));
 
+    // compute yaw, pitch 
     this.canvas.addEventListener("mousemove", (e) => {
       if (!isDragging) return;
 
@@ -84,24 +78,17 @@ export class Camera {
         this.elevation = Math.max(0.01, Math.min(Math.PI / 2 - 0.01, this.elevation));
 
       } else if (this.isThirdPerson) {
-
+        //yaw
         this.thirdPersonAzimuth += dx * 0.01;
+        // pitch
         this.thirdPersonElevation += dy * 0.01;
         this.thirdPersonElevation = Math.max(0.01, Math.min(Math.PI / 2 - 0.01, this.thirdPersonElevation));
 
-        // TODO fix
-        this.thirdPersonAutoFollow = false;
-
-        clearTimeout(this.autoFollowTimeout);
-        this.autoFollowTimeout = setTimeout(() => {
-          this.thirdPersonAutoFollow = true;
-        }, 3000);
-
       } else if (this.isFirstPerson) {
-
+        // yaw
         this.firstPersonRotation -= dx * 0.008;
+        // pitch
         this.firstPersonPitch -= dy * 0.008;
-
         this.firstPersonPitch = Math.max(this.firstPersonMinPitch,
           Math.min(this.firstPersonMaxPitch, this.firstPersonPitch));
 
@@ -117,6 +104,7 @@ export class Camera {
       lastY = e.clientY;
     });
 
+    // radius 
     this.canvas.addEventListener("wheel", (e) => {
       e.preventDefault();
 
@@ -128,29 +116,24 @@ export class Camera {
 
         this.thirdPersonRadius *= 1 + e.deltaY * 0.0005;
         this.thirdPersonRadius = Math.max(this.thirdPersonMinRadius, Math.min(this.thirdPersonRadius, this.thirdPersonMaxRadius));
-
-        // TODO fix
-        this.thirdPersonAutoFollow = false;
-        clearTimeout(this.autoFollowTimeout);
-        this.autoFollowTimeout = setTimeout(() => {
-          this.thirdPersonAutoFollow = true;
-        }, 2000);
       }
     });
 
-    // orbital controls
+    // orbital movement
     window.addEventListener("keydown", (e) => {
       if (!this.isOrbital) return;
-      
+
       const postion = Camera.computeCameraPosition(this.azimuth, this.elevation, this.radius);
       const eye = vec3.fromValues(postion.x,
         postion.y,
         postion.z
       );
 
+      // fix on the origin
       vec3.add(eye, eye, this.target);
 
       const forward = vec3.create();
+      // direction from camera to target 
       vec3.sub(forward, this.target, eye);
       vec3.normalize(forward, forward);
 
@@ -179,19 +162,18 @@ export class Camera {
 
       vec3.add(this.target, this.target, move);
 
-      // avoid under plane
+      // avoid to see under the plane
       const minHeight = 0.001;
       this.target[1] = Math.max(this.target[1], minHeight);
     });
   }
 
-  // ok
   static computeCameraPosition(yaw, pitch, radius) {
 
     // is a point on a sphere 
-    // x = distance * cos(pitch) * sin(yaw);
-    // y = distance * sin(pitch);
-    // z = distance * cos(pitch) * cos(yaw);
+    // x = R * cos(pitch) * sin(yaw);
+    // y = R * sin(pitch);
+    // z = R * cos(pitch) * cos(yaw);
     const x = radius * Math.cos(pitch) * Math.sin(yaw);
     const y = radius * Math.sin(pitch);
     const z = radius * Math.cos(pitch) * Math.cos(yaw);
@@ -199,93 +181,46 @@ export class Camera {
     return { x, y, z };
   }
 
-  // ok
-  updateThirdPersonPosition() {
+  updateThirdPersonCameraPosition() {
     const position = Camera.computeCameraPosition(this.thirdPersonAzimuth, this.thirdPersonElevation, this.thirdPersonRadius);
 
-    vec3.set(this.thirdPersonPosition,
+    // sphere centered on the target
+    //  x_C + R * cos(pitch) * sin(yaw);
+    vec3.set(this.thirdPersonCameraPosition,
       this.thirdPersonTarget[0] + position.x,
       this.thirdPersonTarget[1] + position.y,
       this.thirdPersonTarget[2] + position.z
     );
   }
 
-  // ok
   updateThirdPersonTarget(targetPosition) {
     vec3.copy(this.thirdPersonTarget, targetPosition);
-    this.updateThirdPersonPosition();
+    // center at target
+    this.updateThirdPersonCameraPosition();
   }
 
-  // TODO to be fixed 
-  updateThirdPersonFollow(playerRotation, isMoving, deltaTime) {
-    if (this.cameraMode !== 'thirdPerson' || !this.thirdPersonAutoFollow) return;
 
-    if (isMoving) {
-      // Calculate desired camera angle (behind the player)
-      this.thirdPersonTargetAzimuth = playerRotation + Math.PI;
-
-      // Normalize angles to [-PI, PI] range
-      while (this.thirdPersonTargetAzimuth > Math.PI) {
-        this.thirdPersonTargetAzimuth -= 2 * Math.PI;
-      }
-      while (this.thirdPersonTargetAzimuth < -Math.PI) {
-        this.thirdPersonTargetAzimuth += 2 * Math.PI;
-      }
-
-      // Calculate angle difference
-      let angleDiff = this.thirdPersonTargetAzimuth - this.thirdPersonAzimuth;
-
-      // Handle wrapping around PI/-PI boundary
-      if (angleDiff > Math.PI) {
-        angleDiff -= 2 * Math.PI;
-      } else if (angleDiff < -Math.PI) {
-        angleDiff += 2 * Math.PI;
-      }
-
-      // Only follow if difference is significant enough
-      if (Math.abs(angleDiff) > this.thirdPersonFollowDeadzone) {
-        // Smooth interpolation towards target angle
-        const followAmount = this.thirdPersonFollowSpeed * deltaTime;
-        this.thirdPersonAzimuth += angleDiff * Math.min(followAmount, 1.0);
-
-        // Normalize azimuth
-        while (this.thirdPersonAzimuth > Math.PI) {
-          this.thirdPersonAzimuth -= 2 * Math.PI;
-        }
-        while (this.thirdPersonAzimuth < -Math.PI) {
-          this.thirdPersonAzimuth += 2 * Math.PI;
-        }
-
-        this.updateThirdPersonPosition();
-      }
-    }
-  }
-
-  // ok
   setFirstPersonView(cameraPosition, rotation) {
+    // set all as the target 
     this.updateFirstPersonPosition(cameraPosition);
     this.firstPersonRotation = rotation;
-
     this.firstPersonPitch = 0;
-
     this.cameraMode = 'firstPerson';
   }
 
-  // ok
   updateFirstPersonPosition(cameraPosition) {
     vec3.copy(this.firstPersonPosition, cameraPosition);
   }
 
-  // ok
   updateView() {
-
     if (this.isThirdPerson) {
-      this.updateThirdPersonPosition();
+      this.updateThirdPersonCameraPosition();
 
       // view transformation 
+      // to the camera space
       mat4.lookAt(
         this.viewMatrix,
-        this.thirdPersonPosition,
+        this.thirdPersonCameraPosition,
         this.thirdPersonTarget,
         this.up
       );
@@ -294,11 +229,15 @@ export class Camera {
       const target = vec3.create();
 
       const position = Camera.computeCameraPosition(this.firstPersonRotation, this.firstPersonPitch, 1);
+      // centered at target position of radius 1
       target[0] = this.firstPersonPosition[0] + position.x;
       target[1] = this.firstPersonPosition[1] + position.y;
       target[2] = this.firstPersonPosition[2] + position.z;
 
-      mat4.lookAt(this.viewMatrix, this.firstPersonPosition, target, this.up);
+      mat4.lookAt(this.viewMatrix,
+        this.firstPersonPosition,
+        target,
+        this.up);
 
     } else if (this.isOrbital) {
 
@@ -308,13 +247,12 @@ export class Camera {
         position.y,
         position.z
       );
-
+      // centered at target position 
       vec3.add(eye, eye, this.target);
       mat4.lookAt(this.viewMatrix, eye, this.target, this.up);
     }
   }
 
-  // ok
   updateProjection() {
     const aspect = this.canvas.width / this.canvas.height;
     mat4.perspective(
@@ -326,37 +264,37 @@ export class Camera {
     );
   }
 
-  // ok
   toggleCameraMode() {
     const currentMode = this.cameraMode;
 
     let newMode;
-    if (currentMode === 'orbital') {
-      newMode = 'thirdPerson';
-    } else if (currentMode === 'thirdPerson') {
-      newMode = 'firstPerson';
-    } else if (currentMode === 'firstPerson') {
-      newMode = 'orbital';
-    } else {
-      newMode = 'orbital';
+    switch (currentMode) {
+      case 'orbital':
+        newMode = 'thirdPerson';
+        break;
+      case 'thirdPerson':
+        newMode = 'firstPerson';
+        break;
+      case 'firstPerson':
+        newMode = 'orbital';
+        break;
+      default:
+        newMode = 'orbital';
+        break;
     }
 
     this.cameraMode = newMode;
-
     return newMode;
   }
 
-  // ok
   get isThirdPerson() {
     return this.cameraMode === 'thirdPerson';
   }
 
-  // ok
   get isFirstPerson() {
     return this.cameraMode === 'firstPerson';
   }
 
-  // ok
   get isOrbital() {
     return this.cameraMode === 'orbital';
   }

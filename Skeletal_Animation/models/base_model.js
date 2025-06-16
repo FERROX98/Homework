@@ -3,7 +3,6 @@ export class BaseModel {
         this.gl = gl;
     }
     
-    // TODO move in base_model
     toggleTextures(enable) {
         const gl = this.gl;
         gl.useProgram(this.program);
@@ -12,7 +11,6 @@ export class BaseModel {
             enable ? 1 : 0);
     }
 
-    // TODO move in base_model
     bindAndSetBuffer(data, buffer, typeElement = this.gl.ARRAY_BUFFER, typeDraw = this.gl.STATIC_DRAW) {
         const gl = this.gl;
         // select the buffer
@@ -22,7 +20,6 @@ export class BaseModel {
 
     }
 
-    // TODO move in base_model
     bindAndEnableBuffers(location, buffer, size, type = this.gl.FLOAT) {
         const gl = this.gl;
         gl.useProgram(this.program);

@@ -1,47 +1,55 @@
 precision highp float;
-
-varying vec2 texCoords;
-varying vec3 worldPos;
-
 uniform sampler2D colorTex;
 uniform sampler2D normalTex;
 uniform sampler2D metalRoughTex;
 uniform sampler2D emissionTex;
 uniform bool isTextureEnabled;
 
-// Basic lighting uniforms
-uniform vec3 lightPos;
-uniform vec3 lightColor;
 uniform vec3 dirLightDir;
 uniform vec3 dirLightColor;
+uniform vec3 ambientLight;
+uniform float ambientIntensity;
+
+varying vec3 vNormal;
+varying vec2 texCoords;
+varying vec3 vFragPos;
 
 void main() {
-    if (!isTextureEnabled) {
-        // Natural ground color if textures are disabled
-        gl_FragColor = vec4(0.4, 0.3, 0.2, 1.0); // Brown dirt color
-        return;
-    }
+  if (!isTextureEnabled) {
+    vec3 groundColor = vec3(0.4, 0.3, 0.2);
+    gl_FragColor = vec4(groundColor, 1.0);
+    return;
+  }
 
-    // Sample base color texture
-    vec3 baseColor = texture2D(colorTex, texCoords).rgb;
-    
-    // Check if texture loaded correctly (avoid pure black which might indicate loading failure)
-    if (length(baseColor) < 0.01) {
-        // Use natural ground color as fallback
-        baseColor = vec3(0.4, 0.3, 0.2); // Brown dirt color
-    }
-    
-    // Simple lighting calculation
-    vec3 normal = vec3(0.0, 1.0, 0.0); // Ground normal points up
-    
-    // Directional light (sun)
-    vec3 dirLight = normalize(-dirLightDir);
-    float diffDir = max(dot(normal, dirLight), 0.0);
-    vec3 diffuseDir = diffDir * dirLightColor;
+  vec3 baseColor = texture2D(colorTex, texCoords).rgb;
+  vec3 normalMap = texture2D(normalTex, texCoords).rgb * 2.0 - 1.0;
+  vec3 metalRough = texture2D(metalRoughTex, texCoords).rgb;
+  //vec3 emission = texture2D(emissionTex, texCoords).rgb;
 
-    // Add ambient lighting
-    vec3 ambient = vec3(0.3) * baseColor;
-    vec3 lighting = ambient + diffuseDir * baseColor * 0.7;
+  // GLTF standard PBR material
+  float metal = metalRough.b;
+  float rough = metalRough.g;
 
-    gl_FragColor = vec4(lighting, 1.0);
+  vec3 normal = normalize(vNormal + normalMap * 0.2);
+
+  vec3 dirLight = normalize(-dirLightDir);
+  float diffDir = max(dot(normal, dirLight), 0.0);
+  
+  vec3 diffuseDir = diffDir * dirLightColor;
+  
+  vec3 ambient = ambientLight * ambientIntensity; 
+  
+  // Combinazione più bilanciata: ambient + diffuse attenuata
+  vec3 lighting = (ambient + diffuseDir) * baseColor;
+
+  vec3 viewDir = normalize( - vFragPos);
+  vec3 halfDir = normalize(dirLight + viewDir);
+  float spec = pow(max(dot(normal, halfDir), 0.0), 16.0 * (1.0 - rough));
+  
+  // Materiali dielettrici
+  vec3 specular = spec * mix(vec3(0.04), baseColor, metal) * dirLightColor;
+
+  vec3 color = lighting + specular ;
+
+  gl_FragColor = vec4(color, 1.0);
 }

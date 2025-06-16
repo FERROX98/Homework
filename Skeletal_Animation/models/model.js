@@ -4,13 +4,14 @@ import * as utils from '../shaders/shader_utils.js';
 import { AnimationUtils } from './utils/animation_utils.js';
 import { GLTFUtils } from './utils/gltf_utils.js';
 import { TextureUtils } from './utils/texture_utils.js';
+import { BaseModel } from './base_model.js';
 
 const debug = false;
 
-export class Model {
+export class Model extends BaseModel {
 
   constructor(gl, modelPath, animated = false, visible = true) {
-    this.gl = gl;
+    super(gl);
     this.modelPath = modelPath;
     this.name = modelPath.split('/').pop().split('.')[0];
     this.isVisible = visible;
@@ -19,13 +20,13 @@ export class Model {
     this.program = null;
     this.isLoaded = false;
 
-    this.animPreproc = [];
-
     this.buffersList = [];
+
     this.modelMatrix = mat4.create();
     this.animated = animated;
 
     // joint data
+    this.animPreproc = [];
     this.jointMatrices = [];
     this.nodeParents = [];
     this.inverseBindMatrices = [];
@@ -33,9 +34,9 @@ export class Model {
     // Animation data 
     this.animations = [];
 
-    // TODO UPDATE with move speed
     this.animationSpeed = 0.4;
     this.animationIndexSelected = null;
+    this.currentAnimationTime = 0;
 
     utils.resolveShaderPaths(this.name).then((shadersPath) => {
       // shader 
@@ -52,8 +53,8 @@ export class Model {
           projection: gl.getUniformLocation(program, 'projection'),
           view: gl.getUniformLocation(program, 'view'),
           model: gl.getUniformLocation(program, 'model'),
-          lightPos: gl.getUniformLocation(program, 'lightPos'),
-          lightColor: gl.getUniformLocation(program, 'lightColor'),
+          ambientLight: gl.getUniformLocation(program, 'ambientLight'),
+          ambientIntensity: gl.getUniformLocation(program, 'ambientIntensity'),
           dirLightDir: gl.getUniformLocation(program, 'dirLightDir'),
           dirLightColor: gl.getUniformLocation(program, 'dirLightColor'),
           normalMatrix: gl.getUniformLocation(program, 'normalMatrix'),
@@ -90,6 +91,10 @@ export class Model {
     return 0;
   }
 
+  get animation() {
+    return this.animations[this.animationIndexSelected];
+  }
+
   switchAnimation() {
     // repeat last animation in loop
     return false;
@@ -98,7 +103,7 @@ export class Model {
   initTextures() {
     for (const buffers of this.buffersList) {
       if (buffers.textures) {
-        TextureUtils.initUniforms(this, buffers.textures);
+        TextureUtils.setTexture(this, buffers.textures, true);
       } else {
         console.warn(`[${this.name}] No textures found for buffers.`);
       }
@@ -107,26 +112,13 @@ export class Model {
     this.texturesLoaded = true;
   }
 
-  get animation() {
-    return this.animations[this.animationIndexSelected];
-  }
-
   selectAnimation(index) {
     if (index < 0 || index >= this.animations.length) {
       console.warn(`[${this.name}] Invalid animation index: ${index}`);
       return;
     }
-    this.startTime = performance.now();  // Commented to prevent animation flicker
+    this.startTime = performance.now();
     this.animationIndexSelected = index;
-  }
-
-  // TODO move in base_model
-  toggleTextures(enable) {
-    const gl = this.gl;
-    gl.useProgram(this.program);
-    gl.uniform1i(
-      gl.getUniformLocation(this.program, 'isTextureEnabled'),
-      enable ? 1 : 0);
   }
 
   // TODO move in base_model
@@ -173,28 +165,7 @@ export class Model {
     }
   }
 
-  // TODO move in base_model
-  bindAndSetBuffer(data, buffer, typeElement = this.gl.ARRAY_BUFFER, typeDraw = this.gl.STATIC_DRAW) {
-    const gl = this.gl;
-    // select the buffer
-    gl.bindBuffer(typeElement, buffer);
-    // insert buffers.position into the buffers.vertPosBuffer
-    gl.bufferData(typeElement, data, typeDraw);
-
-  }
-
-  // TODO move in base_model
-  bindAndEnableBuffers(location, buffer, size, type = this.gl.FLOAT) {
-    const gl = this.gl;
-    gl.useProgram(this.program);
-    if (buffer) {
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.vertexAttribPointer(location, size, type, false, 0, 0);
-      gl.enableVertexAttribArray(location);
-    }
-  }
-
-  handleAnimation() {;
+  handleAnimation() {
     if (this.animated && this.jointNodes
       && this.jointNodes.length > 0
       && this.animationIndexSelected !== null
@@ -205,13 +176,17 @@ export class Model {
       if (!this.startTime) {
         this.startTime = performance.now();
       }
-      
+
       let now = performance.now();
       let elapsedSeconds = (now - this.startTime) / 1000;
-      let animTime = elapsedSeconds * this.animationSpeed;
+      let animTime = elapsedSeconds * this.getAnimationSpeed();
 
       AnimationUtils.updateAnimation(animTime, this)
     }
+  }
+
+  getAnimationSpeed() {
+    return this.animationSpeed;
   }
 
   render(proj, view, lights, transform = null) {
@@ -229,12 +204,12 @@ export class Model {
     gl.uniformMatrix4fv(this.uniforms.model, false, modelMatrix);
 
     // fragment
-    gl.uniform3fv(this.uniforms.lightPos, lights.lightPos);
-    gl.uniform3fv(this.uniforms.lightColor, lights.lightColor);
     gl.uniform3fv(this.uniforms.dirLightDir, lights.dirLightDir);
     gl.uniform3fv(this.uniforms.dirLightColor, lights.dirLightColor);
+    gl.uniform3fv(this.uniforms.ambientLight, lights.ambientLight);
+    gl.uniform1f(this.uniforms.ambientIntensity, lights.ambientIntensity);
 
-    // TODO check normal matrix
+    // normal matrix
     const normalMatrix = mat3.create();
     mat3.fromMat4(normalMatrix, modelMatrix);
     mat3.invert(normalMatrix, normalMatrix);
@@ -284,7 +259,4 @@ export class Model {
 
     AnimationUtils.updateJointMatrices(this);
   }
-
-
-
 }

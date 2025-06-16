@@ -11,12 +11,10 @@ export class Character extends Model {
 
     this.isMovingForward = false;
     this.isMovingBackward = false;
-    this.animationSpeed = 0.4; 
-
-    setTimeout(() => {
-      if (this.isLoaded)
-        this.setAnimation('Idle')
-    }, 2000);
+    this.animationSpeed = 1; 
+    this.onLoaded = () => {
+      this.setAnimation('Idle');
+    };
 
     this.currentWalkType = 'normal';
   }
@@ -25,9 +23,16 @@ export class Character extends Model {
     return this.isMovingForward || this.isMovingBackward;
   }
 
+  getAnimationSpeed() {
+    const animSpeed = this.animationSpeed * CharacterAnimations.getAnimationSensitivity(this.currentAnimation.name);
+    return animSpeed;
+  }
+
   setStartAnimationWalk(forward = true) {
     this.isMovingForward = forward;
     this.isMovingBackward = !forward;
+    this.resetAllAnimationObjects();
+
     if(debug) console.log(`[${this.name}] Setting ${this.currentWalkType} start walk animation: ${forward ? 'forward' : 'backward'}`);
     if (forward) {
       const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).start;
@@ -43,6 +48,7 @@ export class Character extends Model {
   setEndAnimationWalk(forward = true) {
     this.isMovingForward = false
     this.isMovingBackward = false;
+    this.resetAllAnimationObjects();
 
     if (forward) {
       const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).end;
@@ -59,7 +65,6 @@ export class Character extends Model {
     if (this.chair)
       this.chair.isVisible = false;
   }
-
 
   switchAnimation() {
 
@@ -98,11 +103,8 @@ export class Character extends Model {
   setAnimation(animationName) {
     if (debug) console.log(`[${this.name}] Setting animation: ${animationName}`);
 
-    if (CharacterAnimations.isWalkAnimation(animationName)) {
-      this.currentAnimation = CharacterAnimations.getWalkAnimationByName(animationName);
-    } else {
-      this.currentAnimation = CharacterAnimations.getAnimationByName(animationName);
-    }
+    this.currentAnimation = CharacterAnimations.getAnimationByName(animationName);
+  
     if (debug) console.log(`[${this.name}] Current animation set to: ${this.currentAnimation.name} (index: ${this.currentAnimation.index})`);
     this.selectAnimation(this.currentAnimation.index);
   }

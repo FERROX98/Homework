@@ -1,11 +1,12 @@
 import * as utils from '../shaders/shader_utils.js';
+import { BaseModel } from '../models/base_model.js';
 
 const vsPath = 'shaders/sky/vertex.glsl';
 const fsPath = 'shaders/sky/fragment.glsl';
 
-class GradientSky {
+export class GradientSky extends BaseModel {
   constructor(gl) {
-    this.gl = gl;
+    super(gl);
     this.isLoad = false;
 
     utils.initShader(gl, vsPath, fsPath).then(program => {
@@ -35,12 +36,10 @@ class GradientSky {
     this.vertPos = gl.getAttribLocation(this.program, 'position');
 
     this.vertexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    this.bindAndSetBuffer(vertices, this.vertexBuffer, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
 
     this.indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+    this.bindAndSetBuffer(indices, this.indexBuffer, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
 
     this.indexCount = indices.length;
   }
@@ -51,18 +50,15 @@ class GradientSky {
     const gl = this.gl;
     gl.useProgram(this.program);
 
-    gl.disable(gl.DEPTH_TEST); // disable depth so sky renders behind
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-    gl.vertexAttribPointer(this.vertPos, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(this.vertPos);
+    gl.disable(gl.DEPTH_TEST);
+    
+    this.bindAndEnableBuffers(this.vertPos, this.vertexBuffer, 2);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
     gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0);
 
-    gl.enable(gl.DEPTH_TEST); // re-enable for other geometry
+    gl.enable(gl.DEPTH_TEST);
 
     return this.indexCount/3;
   }
 }
-
-export { GradientSky };

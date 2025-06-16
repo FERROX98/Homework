@@ -11,7 +11,6 @@ const debug = false;
 
 export class AnimationUtils {
 
-  // TODO to be checked
   static interpolateVec3(track, t) {
     const times = track.times;
     const values = track.values;
@@ -21,8 +20,10 @@ export class AnimationUtils {
       return [0, 0, 0];
     }
 
-    // Handle edge cases
+    // not started kf 
     if (t <= times[0]) return vec3.fromValues(values[0], values[1], values[2]);
+
+    // at end
     if (t >= times[times.length - 1]) {
       const lastIdx = (times.length - 1) * 3;
       return vec3.fromValues(
@@ -32,19 +33,27 @@ export class AnimationUtils {
       );
     }
 
-    // Find the appropriate time segment
     let i = 0;
+
+    // select keyframe 
     while (i < times.length - 1 && t > times[i + 1]) i++;
 
+    // start k
     const t0 = times[i];
+    // end k 
     const t1 = times[i + 1];
+
+    // time interpolation factor
     const alpha = (t - t0) / (t1 - t0);
 
+    // values are stored as flat array 
+    // start 
     const v0 = vec3.fromValues(
       values[i * 3],
       values[i * 3 + 1],
       values[i * 3 + 2]
     );
+    // end 
     const v1 = vec3.fromValues(
       values[(i + 1) * 3],
       values[(i + 1) * 3 + 1],
@@ -54,7 +63,6 @@ export class AnimationUtils {
     return vec3.lerp(vec3.create(), v0, v1, alpha);
   }
 
-  // TODO to be checked 
   static interpolateQuat(track, t) {
     const times = track.times;
     const values = track.values;
@@ -64,9 +72,11 @@ export class AnimationUtils {
       return [0, 0, 0, 1];
     }
 
-    // Handle edge cases
+    // not started kf
     if (t <= times[0])
       return quat.fromValues(values[0], values[1], values[2], values[3]);
+
+    // at end
     if (t >= times[times.length - 1]) {
       const lastIdx = (times.length - 1) * 4;
       return quat.fromValues(
@@ -77,7 +87,7 @@ export class AnimationUtils {
       );
     }
 
-    // Find the appropriate time segment
+    // select kf
     let i = 0;
     while (i < times.length - 1 && t > times[i + 1]) i++;
 
@@ -85,12 +95,15 @@ export class AnimationUtils {
     const t1 = times[i + 1];
     const alpha = (t - t0) / (t1 - t0);
 
+    // start kf A
     const q0 = quat.fromValues(
       values[i * 4],
       values[i * 4 + 1],
       values[i * 4 + 2],
       values[i * 4 + 3]
     );
+
+    // end kf B
     const q1 = quat.fromValues(
       values[(i + 1) * 4],
       values[(i + 1) * 4 + 1],
@@ -100,7 +113,6 @@ export class AnimationUtils {
 
     return quat.slerp(quat.create(), q0, q1, alpha);
   }
-
 
   static configureAnimationData(model) {
 
@@ -119,7 +131,7 @@ export class AnimationUtils {
     const animPreproc = []
 
     //  Keyframe
-    console.log(`[${model.name}] has ${json.animations.length} animations`, json.animations.map(a => a.name || "none"));
+    if (debug) console.log(`[${model.name}] has ${json.animations.length} animations`, json.animations.map(a => a.name || "none"));
     for (const animation of json.animations) {
       const animData = {};
 
@@ -154,7 +166,7 @@ export class AnimationUtils {
         const typeArrayInput = GLTFUtils.getTypeFromAccessor(inputAccessor);
         const numComponentsInput = GLTFUtils.getNumComponentsFromAccessor(inputAccessor);
 
-        // TODO check all in float otherwise gl explodes 
+        // all in float otherwise gl explodes 
         const inputArray = new typeArrayInput(
           bin,
           (inputView.byteOffset || 0),
@@ -185,7 +197,6 @@ export class AnimationUtils {
         const endTime = inputArray[inputArray.length - 1];
         animationLength = Math.max(animationLength, endTime);
       }
-
 
       animData.animationTracks = animationTracks;
       animData.animationLength = animationLength;
@@ -240,25 +251,25 @@ export class AnimationUtils {
       return false;
     }
 
-    if(debug) console.log(`[${this.name}] Updating animation at time: ${t.toFixed(2)}s for model: ${model.name}`, model.currentAnimation);
-    // loop
-    // Check if the animation has completed a full cycle
+    if (debug) console.log(`[${this.name}] Updating animation at time: ${t.toFixed(2)}s for model: ${model.name}`, model.currentAnimation);
+
+    // check switccg
     if (model.animationLength > 0 && t >= model.animationLength) {
       const switched = model.switchAnimation();
       if (switched) {
         if (debug) console.warn(`[${model.name}] Animation completed ${model.currentAnimation.name} a full cycle, switching to next animation. ${t}`);
         let now = performance.now();
-  
-        let elapsedSeconds  = (now - model.startTime) / 1000;
-        let animTime = elapsedSeconds * model.animationSpeed;
+
+        let elapsedSeconds = (now - model.startTime) / 1000;
+        let animTime = elapsedSeconds * model.getAnimationSpeed();
 
         t = animTime;
         if (debug) console.warn(`[${this.name}] Animation time reset to: ${t.toFixed(2)}s`);
       }
     }
-    
-    t = t % model.animationLength
 
+    t = t % model.animationLength
+    model.currentAnimationTime = t;
     const localTransforms = model.jointNodes.map(() => mat4.create());
     const jointWorld = model.jointNodes.map(() => mat4.create());
 
@@ -266,12 +277,11 @@ export class AnimationUtils {
     for (let i = 0; i < model.jointNodes.length; i++) {
 
       const nodeIndex = model.jointNodes[i];
-      //  console.log(`[${model.name}] Processing joint node ${nodeIndex} at time ${t}`);
 
       //  track: transformation values
       const track = model.animationTracks.get(nodeIndex);
       if (!track) {
-        //  console.warn(`[${model.name}] No animation track found for node (bone) ${nodeIndex}`);
+        if (debug) console.warn(`[${model.name}] No animation track found for node (bone) ${nodeIndex}`);
         continue;
       }
 
@@ -306,9 +316,6 @@ export class AnimationUtils {
       mat4.multiply(localTransforms[i], TR, S);
 
       const parent = model.nodeParents[model.jointNodes[i]];
-
-      // console.log(`[${model.name}] Parent of joint node ${nodeIndex}:`, parent);
-      // console.log(`[${model.name}] name of node ${nodeIndex}:`, model.json.nodes[nodeIndex].name);
 
       //  [pseudo] if(bone is not the root)
       if (parent != null) {

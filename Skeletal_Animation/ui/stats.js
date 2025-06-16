@@ -11,15 +11,13 @@ export class Stats {
     this.minimizeBtn = document.getElementById("minimizeBtn");
     this.fullContent = document.getElementById('full-content');
     this.minimizedView = document.getElementById('minimized-view');
-    this.headerTitle = document.getElementById('header-title');
     this.container = document.getElementById('stats-container');
 
     this.setEventsHandler();
   }
 
-  // ok 
   setEventsHandler() {
-    // Add keyboard toggle functionality
+   
     window.addEventListener('keydown', (e) => {
       if (e.key.toLowerCase() === 'h') {
         this.toggle();
@@ -39,7 +37,6 @@ export class Stats {
     });
   }
   
-  // ok 
   updatePerformanceState(time, triangles = "-") {
     if (!this.isVisible) return;
 
@@ -92,7 +89,6 @@ export class Stats {
     this.lastFrameTime = time;
   }
 
-  // ok 
   toggleMinimize() {
     this.isMinimized = !this.isMinimized;
 
@@ -109,7 +105,6 @@ export class Stats {
     }
   }
 
-  // ok
   updateCharacterState(characterController, camera) {
     if (!this.isVisible) return;
 
@@ -133,9 +128,11 @@ export class Stats {
 
     const pitchElement = document.getElementById('pitch-info');
     if (pitchElement) {
+      // in degrees
       pitchElement.textContent = (state.pitch * 180 / Math.PI).toFixed(1) + '°';
     }
 
+    // debug info
     const moveElement = document.getElementById('movement-info');
     if (moveElement) {
       moveElement.textContent = state.isMoving ? 'Yes' : 'No';
@@ -173,7 +170,6 @@ export class Stats {
     }
   }
 
-  // ok
   toggle() {
     this.isVisible = !this.isVisible;
 
@@ -184,7 +180,6 @@ export class Stats {
     }
   }
 
-  // ok 
   show() {
     this.isVisible = true;
     this.container.style.display = 'block';
@@ -194,7 +189,6 @@ export class Stats {
     }, 10);
   }
 
-  // ok 
   hide() {
     this.isVisible = false;
     this.container.style.opacity = '0';
