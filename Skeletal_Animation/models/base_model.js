@@ -1,10 +1,8 @@
 export class BaseModel {
-    constructor(gl, modelPath, animated = false, visible = true) {
+    constructor(gl) {
         this.gl = gl;
-        this.modelPath = modelPath;
-        this.name = modelPath.split('/').pop().split('.')[0];
-        this.isVisible = visible;
     }
+    
     // TODO move in base_model
     toggleTextures(enable) {
         const gl = this.gl;

@@ -4,7 +4,7 @@ import {
   vec3,
 } from "https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js";
 
-import { Model } from "./model.js";
+import { Model } from "../model.js";
 import { GLTFUtils } from "./gltf_utils.js";
 
 const debug = false;

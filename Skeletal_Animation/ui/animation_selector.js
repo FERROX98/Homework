@@ -4,8 +4,11 @@ import { animations } from '../controllers/character_animations.js';
 
 const debug = false;
 export class AnimationSelector {
+
+
   constructor(caracterController) {
-   
+    this.animationToShow = animations.filter(animation => animation.show);
+
     if (debug) console.log('AnimationSelector initialized with controller:', caracterController);
     this.caracterController = caracterController;
     
@@ -32,7 +35,7 @@ export class AnimationSelector {
     if (this.animationList) {
       this.animationList.innerHTML = '';
 
-      animations.forEach((animation, index) => {
+      this.animationToShow.forEach((animation, index) => {
         const item = document.createElement('div');
         item.className = 'animation-item';
         item.innerHTML = ` 
@@ -41,7 +44,7 @@ export class AnimationSelector {
           <span class="animation-description">${animation.description}</span>`;
 
         // circle  = R * 2 *pi
-        const anglePerItem = 2 * Math.PI / animations.length;
+        const anglePerItem = 2 * Math.PI / this.animationToShow.length;
         // 2 pi / the num of el 
         const angle = (index + 1 ) * anglePerItem;
         const radius = 240;
@@ -78,8 +81,8 @@ export class AnimationSelector {
   selectAnimation(index) {
     this.selectedIndex = index;
     const nameLabel = document.getElementById('selected-animation-name');
-    nameLabel.textContent = animations[index].name;
-    this.updateSelectedVisual();
+    nameLabel.textContent = this.animationToShow[index].name;
+    this.updateSelectedVisual(); 
   }
 
   updateSelectedVisual() {
@@ -92,7 +95,7 @@ export class AnimationSelector {
   }
 
   activateSelectedAnimation() {
-    const selected = animations[this.selectedIndex];
+    const selected = this.animationToShow[this.selectedIndex];
     console.log('Activating animation:', selected.name, this.caracterController);
 
     if (this.caracterController) {

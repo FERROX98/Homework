@@ -103,14 +103,14 @@ export class Environment {
       dirLightColor: this.dirLightColor
     };
 
-    if (this.sky) 
-       trianglesCount += this.sky.render();
+    if (this.sky)
+      trianglesCount += this.sky.render();
     
-    if (this.ground) 
+    if (this.ground)
       trianglesCount += this.ground.render(proj, view, lights);
     
 
-    if (this.wall) 
+    if (this.wall)
       trianglesCount += this.wall.render(proj, view, lights);
  
     for (const [model, transform] of this.modelTransforms) {
@@ -119,7 +119,8 @@ export class Environment {
         continue;
       }
 
-      if (transform) 
+      if (transform)
+        if (debug) console.log(`Rendering model ${model.name} with transform:`, transform);
         trianglesCount += model.render(proj, view, lights, transform);
     }
     return trianglesCount;

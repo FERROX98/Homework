@@ -1,4 +1,4 @@
-import { TextureUtils } from '../models/texture_utils.js';
+import { TextureUtils } from '../models/utils/texture_utils.js';
 import * as utils from '../shaders/shader_utils.js';
 import { mat4 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
 const vsPath = 'shaders/ground/vertex.glsl';

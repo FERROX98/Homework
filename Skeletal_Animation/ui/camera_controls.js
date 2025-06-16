@@ -1,3 +1,6 @@
+import { CharacterAnimations } from "../controllers/character_animations.js";
+
+
 export class CameraControls {
   constructor() {
     this.isVisible = false;
@@ -14,9 +17,12 @@ export class CameraControls {
     this.speedSlider = document.getElementById("speed-slider");
     this.speedValue = document.getElementById("speed-value");
     
+    // Rotation speed controls
+    this.rotationSpeedSlider = document.getElementById("rotation-speed-slider");
+    this.rotationSpeedValue = document.getElementById("rotation-speed-value");
+    
     // Walk animation controls
     this.walkAnimationSelector = document.getElementById("walk-animation-selector");
-    this.walkAnimationDescription = document.getElementById("walk-animation-description");
     
     // Sun position controls
     this.sunXSlider = document.getElementById("sun-x-slider");
@@ -85,16 +91,25 @@ export class CameraControls {
     });
     
     this.speedSlider.addEventListener('input', (e) => {
-      const speed = parseFloat(e.target.value);
-      this.speedValue.textContent = speed.toFixed(1);
-      this.updateSpeed(speed);
+      const displaySpeed = parseFloat(e.target.value);
+      // Normalize from 0.1-3 range to 0-1 range
+      const normalizedSpeed = (displaySpeed - 0.1) / (3 - 0.1); // (value - min) / (max - min)
+      this.speedValue.textContent = displaySpeed.toFixed(1);
+      this.updateSpeed(normalizedSpeed);
+    });
+    
+    this.rotationSpeedSlider.addEventListener('input', (e) => {
+      const displaySpeed = parseFloat(e.target.value);
+      this.rotationSpeedValue.textContent = displaySpeed.toFixed(2);
+      // Normalize from 0.1-0.8 range to 0-1 range
+      const normalizedRotationSpeed = (displaySpeed - 0.1) / (1 - 0.1); // (value - min) / (max - min)
+      this.updateRotationSpeed(normalizedRotationSpeed);
     });
 
     // Walk animation selector
     this.walkAnimationSelector.addEventListener('change', (e) => {
       const animationType = e.target.value;
       this.updateWalkAnimationType(animationType);
-      this.updateWalkAnimationDescription(animationType);
     });
 
     // Sun position controls
@@ -143,23 +158,49 @@ export class CameraControls {
     this.camera.updateProjection();
   }
 
-  updateSpeed(speed) {
+  updateSpeed(normalizedSpeed) {
     if (!this.characterController) return;
     
     if(!this.camera.cameraMode.isOrbital) {
-      this.characterController.moveSpeed = speed;
+      // Convert normalized speed (0-1) to actual movement speed (0-1.5) - reduced range
+      const actualSpeed = normalizedSpeed * 0.30  
+                            * CharacterAnimations.getMovementSensitivity(this.characterController.model.currentWalkType);
+      console.log(`Normalized speed: ${normalizedSpeed}, Actual speed: ${CharacterAnimations.getMovementSensitivity(this.characterController.model.currentWalkType)}`);
+      // TODO add a base multiplier for animation 
+      this.characterController.moveSpeed = actualSpeed;
+      // Update character animation speed based on movement speed
+      this.characterController.updateSpeed(actualSpeed);
+      // Also update the model's animation speed if available
+      if (this.characterController.model && this.characterController.model.animationSpeed !== undefined) {
+        // Better proportional scaling for animation speed
+        const baseAnimSpeed = 1.0; // Increased base speed
+        const speedMultiplier = 0.1 + (normalizedSpeed * 3); // Range from 0.3 to 1.7 (better proportion)
+        this.characterController.model.animationSpeed = baseAnimSpeed * speedMultiplier ;
+                                          //* CharacterAnimations.getAnimationSensitivity(this.characterController.model.currentAnimation);
+      }
+      console.log(`Character move speed updated to: ${this.characterController.moveSpeed}`);
+      console.log(`Character animation speed updated to: ${this.characterController.model.animationSpeed}`);
     } 
     else{
-        this.camera.moveSpeed = speed;
+        // For orbital camera, also scale appropriately
+        const cameraSpeed = 1.0 + (normalizedSpeed * 6.0); // Range from 1 to 7 (reduced)
+        this.camera.moveSpeed = cameraSpeed;
     }
+  }
+
+  updateRotationSpeed(normalizedRotationSpeed) {
+    if (!this.characterController) return;
+    
+    // normalizedRotationSpeed is 0-1, scale to 0-0.8 range (reduced internal range)
+    this.characterController.rotationSpeed = normalizedRotationSpeed * 0.8;
   }
 
   updateSpeedSliderRange() {
   
-    this.speedSlider.min = '1';
-    this.speedSlider.max = '10';
-    this.speedSlider.step = '0.5';
-    this.speedSlider.value = this.characterController ? this.characterController.moveSpeed : '10.0';
+    this.speedSlider.min = '0.1';
+    this.speedSlider.max = '3';
+    this.speedSlider.step = '0.1';
+    this.speedSlider.value = this.characterController ? this.characterController.moveSpeed : '1.5';
     
     this.speedValue.textContent = parseFloat(this.speedSlider.value).toFixed(1);
   }
@@ -170,7 +211,20 @@ export class CameraControls {
     const currentFov = (this.camera.fov * 180 / Math.PI).toFixed(0);
     this.fovSlider.value = currentFov;
     this.fovValue.textContent = currentFov + '°';
- 
+    
+    // Convert movement speed (0-1.5) to normalized (0-1) then to display speed (0.1-3)
+    const moveSpeedNormalized = this.characterController.moveSpeed / 1.5; // Normalize from 0-1.5 to 0-1
+    const displaySpeed = (moveSpeedNormalized /( 0.30  
+                            * CharacterAnimations.getMovementSensitivity(this.characterController.model.currentWalkType)));
+     
+    this.speedSlider.value = displaySpeed;
+    this.speedValue.textContent = displaySpeed.toFixed(1);
+    
+    // Convert rotation speed (0-0.8 internal) to normalized (0-1) then to display range (0.1-0.8)
+    const rotationSpeedNormalized = this.characterController.rotationSpeed / 0.8; // Normalize from 0-0.8 to 0-1
+    const displayRotationSpeed = (rotationSpeedNormalized * (1 - 0.1)) + 0.1;
+    this.rotationSpeedSlider.value = displayRotationSpeed;
+    this.rotationSpeedValue.textContent = displayRotationSpeed.toFixed(2);
   }
 
  
@@ -182,8 +236,23 @@ export class CameraControls {
     }
     
     if (this.characterController) {
-      this.characterController.moveSpeed = 1;
-      this.characterController.rotationSpeed = 2.0;
+      // Set medium intervals for movement and rotation speed with reduced ranges
+      // Movement speed: medium of 0.1-3 range is 1.5, normalized to 0-1 then scaled to 0-1.5
+      const mediumMovementDisplay = 1.5; // Medium of UI range (0.1-3)
+      const normalizedMovement = (mediumMovementDisplay - 0.1) / (3 - 0.1); // Normalize to 0-1
+      const actualMovementSpeed = normalizedMovement * 1.5; // Scale to 0-1.5 range
+      this.characterController.moveSpeed = actualMovementSpeed;
+      
+      // Rotation speed: set to 0.20 (non-normalized internal value)
+      this.characterController.rotationSpeed = 0.20;
+      
+      // Reset walk animation to normal
+      this.characterController.setWalkAnimationType('normal');
+      
+      // Reset walk animation selector in UI
+      if (this.walkAnimationSelector) {
+        this.walkAnimationSelector.value = 'normal';
+      }
     }
     
     // Reset lighting controls
@@ -264,17 +333,6 @@ export class CameraControls {
     }
   }
 
-  updateWalkAnimationDescription(animationType) {
-    const descriptions = {
-      'normal': 'Standard walking animation',
-      'relaxed': 'Slow, relaxed walking style',
-      'fast': 'Fast running animation'
-    };
-    
-    if (this.walkAnimationDescription) {
-      this.walkAnimationDescription.textContent = descriptions[animationType] || 'Unknown animation type';
-    }
-  }
 
   // Initialize objects list
   initObjectsList() {
@@ -314,7 +372,7 @@ export class CameraControls {
       label.textContent = modelInfo.name;
       label.className = 'object-name';
       
-      // Add event listener for visibility toggle
+      //TODO fix Add event listener for visibility toggle
       checkbox.addEventListener('change', (e) => {
         const isVisible = e.target.checked;
         this.environment.setModelVisibility(modelInfo.model, isVisible);
@@ -332,10 +390,13 @@ export class CameraControls {
 
     this.environment.setDirectionalLightIntensity(intensity);
     
-    // Update status
-    if (this.lightingStatus) {
-      this.lightingStatus.textContent = `Light intensity: ${intensity.toFixed(1)} - Directional light follows sun position`;
-    }
+    const x = parseFloat(this.sunXSlider.value);
+    const y = parseFloat(this.sunYSlider.value);
+    const z = parseFloat(this.sunZSlider.value);
+
+
+    this.lightingStatus.textContent = `Sun: [${x}, ${y}, ${z}] - Light intensity: ${intensity.toFixed(1)}`;
+
   }
 
   updateSunPosition() {

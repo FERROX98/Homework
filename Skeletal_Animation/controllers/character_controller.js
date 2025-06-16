@@ -16,7 +16,7 @@ export class CharacterController {
     if (this.model){
       this.chair = new Model(this.model.gl, "chair.gltf", false, false);
       environment.addModel(  this.chair );
-      model.chair = this.chair; 
+      model.chair = this.chair;
     }
 
     this.position = vec3.fromValues(0, 0, 0);
@@ -37,9 +37,12 @@ export class CharacterController {
     };
 
     // Movement e Animation walk fp 
-    this.moveSpeed = 0.058;
+    // Initialize with medium values that align with UI normalization
+    // UI medium: 1.5 (of 0.1-3) -> normalized: 0.48 -> actual: 0.72 (≈ 0.75)
+    this.moveSpeed = 0.14; // Medium movement speed (0-1.5 range)
     this.baseSpeed = this.moveSpeed;
-    this.rotationSpeed = 0.4;
+    // Rotation set to 0.20 (non-normalized internal value)
+    this.rotationSpeed = 0.10; // Initial rotation speed (0-0.8 internal range)
     this.isMoving = false;
 
     // bobbing effect
@@ -74,6 +77,9 @@ export class CharacterController {
 
     this.initControls();
     this.setUpControls();
+    
+    // Initialize walk animation to normal
+    this.setWalkAnimationType('normal');
   }
 
   // TODO connect to the UI when change speed 
@@ -301,17 +307,19 @@ export class CharacterController {
 
   // TODO improve 
   updateAnimation() {
-    if (this.camera.isFirstPerson) {
-      if (this.isMoving) {
-        this.currentStep = (this.currentStep + this.step) % this.durWalk;
-        const heightOffset = Math.abs(this.currentStep * this.bobAmount);
-        this.position[1] = this.baseHeight + heightOffset;
-        this.reverse = this.durWalk - this.currentStep;
-      } else {
-        this.currentStep = 0;
-        this.position[1] = this.baseHeight;
-      }
+    if (!this.camera.isFirstPerson) 
+      return; 
+
+    if (this.isMoving) {
+      this.currentStep = (this.currentStep + this.step) % this.durWalk;
+      const heightOffset = Math.abs(this.currentStep * this.bobAmount);
+      this.position[1] = this.baseHeight + heightOffset;
+      this.reverse = this.durWalk - this.currentStep;
+    } else {
+      this.currentStep = 0;
+      this.position[1] = this.baseHeight;
     }
+    
   }
 
   updateCamera() {

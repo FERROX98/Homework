@@ -1,5 +1,5 @@
 import { TextureUtils } from "./texture_utils.js";
-import { Model } from "./model.js";
+import { Model } from "../model.js";
 import { AnimationUtils } from "./animation_utils.js";
 import { mat4 } from "https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js";
 

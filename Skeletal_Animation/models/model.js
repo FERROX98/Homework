@@ -1,9 +1,9 @@
 import { mat3, mat4 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
 
 import * as utils from '../shaders/shader_utils.js';
-import { AnimationUtils } from './animation_utils.js';
-import { GLTFUtils } from './gltf_utils.js';
-import { TextureUtils } from './texture_utils.js';
+import { AnimationUtils } from './utils/animation_utils.js';
+import { GLTFUtils } from './utils/gltf_utils.js';
+import { TextureUtils } from './utils/texture_utils.js';
 
 const debug = false;
 
@@ -32,8 +32,9 @@ export class Model {
 
     // Animation data 
     this.animations = [];
+
     // TODO UPDATE with move speed
-    this.animationSpeed = 0.5;
+    this.animationSpeed = 0.4;
     this.animationIndexSelected = null;
 
     utils.resolveShaderPaths(this.name).then((shadersPath) => {
@@ -204,10 +205,7 @@ export class Model {
       if (!this.startTime) {
         this.startTime = performance.now();
       }
-      if (!this.animationSpeed) {
-        this.animationSpeed = 4.0;
-      }
-
+      
       let now = performance.now();
       let elapsedSeconds = (now - this.startTime) / 1000;
       let animTime = elapsedSeconds * this.animationSpeed;
