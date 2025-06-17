@@ -90,6 +90,7 @@ export class TextureUtils {
 
             } 
         }
+        model.toggleTextures(true);
     }
 
 }

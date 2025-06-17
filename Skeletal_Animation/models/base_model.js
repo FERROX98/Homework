@@ -1,3 +1,7 @@
+
+
+const debug = false;
+
 export class BaseModel {
     constructor(gl) {
         this.gl = gl;
@@ -23,10 +27,12 @@ export class BaseModel {
     bindAndEnableBuffers(location, buffer, size, type = this.gl.FLOAT) {
         const gl = this.gl;
         gl.useProgram(this.program);
-        if (buffer) {
+        if (buffer && location !== -1) {
             gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
             gl.vertexAttribPointer(location, size, type, false, 0, 0);
             gl.enableVertexAttribArray(location);
+        } else if (location === -1) {
+            if (debug) console.warn('Trying to bind buffer to invalid attribute location (-1)', this.name);
         }
     }
 }

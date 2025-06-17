@@ -13,7 +13,6 @@ void main() {
     // camera centered at origin 
     vFragPos = vec3(view * world_space);
     
-    
     texCoords = textureCoords;
     
     gl_Position = projection * view * world_space;

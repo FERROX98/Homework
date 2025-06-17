@@ -49,7 +49,7 @@ void main() {
   
   //vec3 specularTerm = pow(cosPhi, shininess) * dirLightColor.rgb; 
   // Ambient term
-  vec3 ambientTerm = ambientLight.rgb * ambientIntensity;
-  gl_FragColor = vec4(ambientTerm,1.0) + vec4(diffuseTerm,1.0) + vec4(specularTerm,1.0);
+  vec4 ambientTerm = ambientLight* ambientIntensity;
+  gl_FragColor = ambientTerm + vec4(diffuseTerm,1.0) + vec4(specularTerm,1.0);
 
 }

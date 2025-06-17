@@ -1,4 +1,4 @@
-import { mat3, mat4 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
+import { mat3, mat4, vec3 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
 
 import * as utils from '../shaders/shader_utils.js';
 import { AnimationUtils } from './utils/animation_utils.js';
@@ -59,6 +59,7 @@ export class Model extends BaseModel {
           dirLightColor: gl.getUniformLocation(program, 'dirLightColor'),
           normalMatrix: gl.getUniformLocation(program, 'normalMatrix'),
           isTextureEnabled: gl.getUniformLocation(program, 'isTextureEnabled'),
+         // modelViewMatrix: gl.getUniformLocation(program, 'modelViewMatrix'),
         };
 
         GLTFUtils.loadGLTF(this, `models/assets/${modelPath}`).then(() => {
@@ -121,42 +122,51 @@ export class Model extends BaseModel {
     this.animationIndexSelected = index;
   }
 
-  // TODO move in base_model
   createBuffers() {
     const gl = this.gl;
     for (const buffers of this.buffersList) {
       // Pointer in the shader
       buffers.vertPosLoc = gl.getAttribLocation(this.program, 'position');
-      if (buffers.position && buffers.vertPosLoc !== -1) {
-        // buffer of vertex
-        buffers.vertPosBuffer = gl.createBuffer();
-        this.bindAndSetBuffer(buffers.position, buffers.vertPosBuffer);
-      }
+      if (buffers.vertPosLoc === -1) 
+        console.error(`[${this.name}] No position attribute found in shader.`);  
+   
+      buffers.vertPosBuffer = gl.createBuffer();
+      this.bindAndSetBuffer(buffers.position, buffers.vertPosBuffer);
+      
 
       buffers.normalLoc = gl.getAttribLocation(this.program, 'normal');
-      if (buffers.normal && buffers.normalLoc !== -1) {
-        buffers.normalBuffer = gl.createBuffer();
-        this.bindAndSetBuffer(buffers.normal, buffers.normalBuffer);
-      }
+      if (buffers.normalLoc === -1) 
+        console.error(`[${this.name}] No normal attribute found in shader.`);
+
+      buffers.normalBuffer = gl.createBuffer();
+      this.bindAndSetBuffer(buffers.normal, buffers.normalBuffer);
+    
 
       buffers.texCoordLoc = gl.getAttribLocation(this.program, 'textureCoords');
       const texCoordData = buffers.texcoord || buffers.textureCoords;
-      if (texCoordData && buffers.texCoordLoc !== -1) {
-        buffers.texCoordBuffer = gl.createBuffer();
-        this.bindAndSetBuffer(texCoordData, buffers.texCoordBuffer);
-      }
+      if (buffers.texCoordLoc === -1) 
+        console.error(`[${this.name}] No texture coordinate attribute found in shader.`);
+      
+      buffers.texCoordBuffer = gl.createBuffer();
+      this.bindAndSetBuffer(texCoordData, buffers.texCoordBuffer);
+      
 
       buffers.jointLoc = gl.getAttribLocation(this.program, 'joints');
       if (buffers.joints && buffers.jointLoc !== -1) {
         buffers.jointBuffer = gl.createBuffer();
         this.bindAndSetBuffer(buffers.joints, buffers.jointBuffer);
+      } else if (buffers.joints) {
+        console.warn(`[${this.name}] No joint attribute found in shader, skipping joint data.`);
       }
 
       buffers.weightLoc = gl.getAttribLocation(this.program, 'weights');
       if (buffers.weights && buffers.weightLoc !== -1) {
         buffers.weightBuffer = gl.createBuffer();
         this.bindAndSetBuffer(buffers.weights, buffers.weightBuffer);
+      } else if (buffers.weights) {
+        console.warn(`[${this.name}] No weight attribute found in shader, skipping weight data.`);
       }
+      
 
       // Triangles 
       buffers.indexBuffer = gl.createBuffer();
@@ -203,18 +213,30 @@ export class Model extends BaseModel {
     gl.uniformMatrix4fv(this.uniforms.view, false, view);
     gl.uniformMatrix4fv(this.uniforms.model, false, modelMatrix);
 
+    // transform in view space lights
+    const dirLightDirView = vec3.create();
+    const rotOnlyView = mat3.create();
+    mat3.fromMat4(rotOnlyView, view);
+    vec3.transformMat3(dirLightDirView, lights.dirLightDir, rotOnlyView);
+    vec3.normalize(dirLightDirView, dirLightDirView);
+    
     // fragment
-    gl.uniform3fv(this.uniforms.dirLightDir, lights.dirLightDir);
-    gl.uniform3fv(this.uniforms.dirLightColor, lights.dirLightColor);
-    gl.uniform3fv(this.uniforms.ambientLight, lights.ambientLight);
+    gl.uniform3fv(this.uniforms.dirLightDir, dirLightDirView);
+    gl.uniform4fv(this.uniforms.dirLightColor, lights.dirLightColor);
+    gl.uniform4fv(this.uniforms.ambientLight, lights.ambientLight);
     gl.uniform1f(this.uniforms.ambientIntensity, lights.ambientIntensity);
 
-    // normal matrix
+
+    const modelViewMatrix = mat4.create();
+    mat4.multiply(modelViewMatrix, view, modelMatrix);
+
     const normalMatrix = mat3.create();
-    mat3.fromMat4(normalMatrix, modelMatrix);
+    mat3.fromMat4(normalMatrix, modelViewMatrix); 
     mat3.invert(normalMatrix, normalMatrix);
     mat3.transpose(normalMatrix, normalMatrix);
+
     gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
+
 
     let triangleCount = 0;
     this.handleAnimation();

@@ -3,7 +3,7 @@ attribute vec3 position;
 attribute vec3 normal;
 attribute vec2 textureCoords;
 
-uniform mat4 projection, view, model;
+uniform mat4 projection, view, model ;
 uniform mat3 normalMatrix;
 
 varying vec2 texCoords;
@@ -14,13 +14,12 @@ void main() {
     vec4 world_space = model * vec4(position, 1.0);
 
     // camera centered at origin 
-    vFragPos = vec3(view * world_space);
+   vFragPos = vec3(view * world_space);
    // vFragPos = vec3(modelViewMatrix * vec4(position, 1.0));
     // invTranspMV * normal
     vNormal = normalize(normalMatrix * normal);
     
     texCoords = textureCoords; 
     
-    gl_Position = projection * view * world_space; \
-
-}
+    gl_Position = projection * view * world_space; 
+} 

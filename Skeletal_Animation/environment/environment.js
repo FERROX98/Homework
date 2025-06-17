@@ -25,16 +25,16 @@ export class Environment {
 
     this.modelTransforms = new Map();
 
-    // ground - sun 
+    // sun - ground  
     this.dirLightDir = vec3.create();
-    vec3.subtract(this.dirLightDir, this.groundCenter, this.sunPosition);
+    vec3.subtract(this.dirLightDir, this.sunPosition, this.groundCenter);
     vec3.normalize(this.dirLightDir, this.dirLightDir);
     
-    this.dirLightColor = [1.0, 0.95, 0.8];
-    this.dirLightIntensity = 0.8;
+    this.dirLightColor = [1.0, 0.95, 0.8, 1.0];
+    this.dirLightIntensity = 1.0;
  
-    this.ambientLight = [0.2, 0.18, 0.15];
-    this.ambientIntensity = 0.3;
+    this.ambientLight = [0.4, 0.42, 0.45, 1.0];
+    this.ambientIntensity = 0.14;
     
     this.updateLightDirection();
     

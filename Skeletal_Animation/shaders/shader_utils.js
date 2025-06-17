@@ -1,4 +1,4 @@
-//ok
+
 function createShader(gl, type, src) {
   const shader = gl.createShader(type);
   gl.shaderSource(shader, src);
@@ -8,7 +8,7 @@ function createShader(gl, type, src) {
   return shader;
 }
 
-//ok
+
 function createProgram(gl, vs_source, fs_source) {
   const vs = createShader(gl, gl.VERTEX_SHADER, vs_source);
 	const fs = createShader(gl, gl.FRAGMENT_SHADER, fs_source);
@@ -22,7 +22,7 @@ function createProgram(gl, vs_source, fs_source) {
    return prog;
 }
 
-// ok
+
 async function initShaderProg(path) {
   async function loadShaderFile(url) {
     try {
@@ -39,7 +39,7 @@ async function initShaderProg(path) {
   return await source;
 }
 
-// ok
+
 async function initShader(gl, vsPath, fsPath) {
   let vs = await initShaderProg(vsPath)
   let fs = await initShaderProg(fsPath)
@@ -50,7 +50,6 @@ async function initShader(gl, vsPath, fsPath) {
   return await program;
 }
 
-//ok
 async function shaderPathExists(path) {
   try {
     const res = await fetch(path, { method: 'HEAD' });
@@ -60,7 +59,7 @@ async function shaderPathExists(path) {
   }
 }
 
-//ok
+
 async function resolveShaderPaths(name) {
   const basePath = `shaders/obj/${name}/`;
  
