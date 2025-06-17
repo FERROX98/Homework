@@ -9,7 +9,7 @@ export const walkAnimations = [
     { name: 'WalkRevEnd', index: 12, next: 'Idle', waitBefore: 0, waitAfter: 0  },
     { name: 'Default', index: 18, next: 'Idle', waitBefore: 0, waitAfter: 0  },
     { name: 'Idle', index: 23, next: null },
-    { name: 'WalkRelaxedEnd', index: 26, next: 'Idle', waitBefore: 0, waitAfter: 2300  },
+    { name: 'WalkRelaxedEnd', index: 26, next: 'Idle', waitBefore: 0, waitAfter: 2000  },
     // TODO fix 
     { name: 'WalkRevRelaxedEnd', index: 12, next: 'Idle', waitBefore: 0, waitAfter: 0  },
     { name: 'WalkStart', index: 27, next: 'WalkLoop', waitBefore: 1000, waitAfter: 0  },

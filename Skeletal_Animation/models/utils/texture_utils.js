@@ -82,7 +82,7 @@ export class TextureUtils {
         
         for (const {tex, fallback, uniform, unit} of units) {
             const uniformLoc = gl.getUniformLocation(model.program, uniform);
-            if (uniformLoc !== null) {
+            if (uniformLoc !== null && (tex || fallback)) {
                 gl.activeTexture(gl.TEXTURE0 + unit);
                 gl.bindTexture(gl.TEXTURE_2D, tex || fallback);
                 if (init)

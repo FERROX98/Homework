@@ -20,7 +20,7 @@ void main() {
   }
    
   // RGBS  
-  vec3 baseColor = texture2D(colorTex, texCoords).rgb; 
+  vec3 baseColor = pow(texture2D(colorTex, texCoords).rgb, vec3(2.2));
   //  no SRGB 
   vec3 metalRough = texture2D(metalRoughTex, texCoords).rgb;
   
@@ -29,7 +29,7 @@ void main() {
   //vec3 normal = normalize(vNormal + normalMap * 0.4);
   vec3 to_light = normalize(lightPosition - vFragPos);
   float d = length(to_light);
-  float attenuation = 1.0 / (1.0+ 0.19 * d + 0.032 * d * d);
+  float attenuation = 1.0 / (1.0+ 0.0019 * d + 0.0032 * d * d);
 
   vec3 normal = normalize(vNormal);
   // GLTF standard PBR material
@@ -41,23 +41,23 @@ void main() {
   vec3 viewDir = normalize(-vFragPos);
   vec3 halfDir = normalize(dirLight + viewDir);
 
-  float cosTheta = max(dot(normal, dirLight), 0.2);
-   
+  float cosTheta = max(dot(normal, dirLight), 0.3);
+  
   // Diffuse term
   vec3 diffuseTerm =  baseColor.rgb * cosTheta; 
 
   float cosPhi =  max(0.0,dot(halfDir, normal));
 
-  float shininess =  clamp(16.0 * (1.0 - rough), 1.0, 512.0);
+  float shininess =  8.0 * (1.0 - rough);
   
   // metal indica quanto è metallo 
   // 0.04 per materiali non metallici
-  vec3 F0 =  mix(vec3(0.04), baseColor.rgb, metal);
+  vec3 F0 =  mix(vec3(0.06), baseColor.rgb, metal);
  
   // Specular term
   vec3 specularTerm = pow(cosPhi, shininess) * dirLightColor.rgb * F0;
   
   vec4 ambientTerm = ambientLight* ambientIntensity; 
-  gl_FragColor = attenuation * (ambientTerm + vec4(diffuseTerm,1.0) + vec4(specularTerm,1.0));
+  gl_FragColor =(ambientTerm + vec4(diffuseTerm,1.0) + vec4(specularTerm,1.0));
 
 }

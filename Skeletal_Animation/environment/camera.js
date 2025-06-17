@@ -26,6 +26,7 @@ export class Camera {
     this.projectionMatrix = mat4.create();
 
     this.fov = (55 * Math.PI) / 180;
+    this.defaultFov = this.fov;
     this.near = 0.1;
     this.far = 1000;
 
@@ -51,6 +52,11 @@ export class Camera {
     this.updateProjection();
   }
 
+   reset() {
+    this.fov = this.defaultFov;
+    this.updateProjection();
+   }
+
   initEvents() {
     let isDragging = false;
     let lastX = 0;
@@ -73,7 +79,10 @@ export class Camera {
       const dy = e.clientY - lastY;
 
       if (this.isOrbital) {
+        //yaw
         this.azimuth += dx * 0.01;
+
+        // pitch
         this.elevation += dy * 0.01;
         this.elevation = Math.max(0.01, Math.min(Math.PI / 2 - 0.01, this.elevation));
 
@@ -104,7 +113,7 @@ export class Camera {
       lastY = e.clientY;
     });
 
-    // radius 
+    // radius (orbital + third person)
     this.canvas.addEventListener("wheel", (e) => {
       e.preventDefault();
 
@@ -119,7 +128,7 @@ export class Camera {
       }
     });
 
-    // orbital movement
+    // orbital position 
     window.addEventListener("keydown", (e) => {
       if (!this.isOrbital) return;
 
@@ -198,7 +207,6 @@ export class Camera {
     // center at target
     this.updateThirdPersonCameraPosition();
   }
-
 
   setFirstPersonView(cameraPosition, rotation) {
     // set all as the target 

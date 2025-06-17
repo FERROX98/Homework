@@ -9,7 +9,7 @@ export class CharacterController {
 
   constructor(model, environment, camera) {
     this.model = model;
-    this.model.onLoaded(); 
+    this.model.onLoaded();
     this.environment = environment;
     this.cameraControls = new CameraControls();
     this.camera = camera;
@@ -26,23 +26,25 @@ export class CharacterController {
     this.scale = vec3.fromValues(0.08, 0.08, 0.08);
     this.velocity = vec3.create();
 
-    // place the player 
     this.environment.addModel(this.model, this.position, [0, this.rotation, 0], this.scale);
 
+    const offsetPosCorr = 4.9;
     // position correction 
     this.boundaryLimits = {
-      minX: -this.environment.groundSize,
-      maxX: this.environment.groundSize,
-      minZ: -this.environment.groundSize,
-      maxZ: this.environment.groundSize,
+      minX: -this.environment.groundSize + offsetPosCorr,
+      maxX: this.environment.groundSize - offsetPosCorr,
+      minZ: -this.environment.groundSize + offsetPosCorr,
+      maxZ: this.environment.groundSize - offsetPosCorr,
       minY: -2,
-      maxY: this.environment.groundSize
+      maxY: this.environment.groundSize - offsetPosCorr
     };
 
     // Movement e Animation walk fp 
-    this.moveSpeed = 0.11;
-    this.baseSpeed = this.moveSpeed;
-    this.rotationSpeed = 0.10;
+    this.animationSpeedMultiplier = 13;
+    this.normalizationFactor = (moveSpeed) =>  ( 0.8* Math.exp(-moveSpeed)); 
+    this.initSpeedModel(0.22, 0.15);
+    
+
     this.isMoving = false;
     this.startTimeMoving = 0;
 
@@ -60,11 +62,8 @@ export class CharacterController {
       arrowright: false
     };
 
-    // Camera settings
-    this.cameraDistance = 12.0;
-    this.cameraHeight = 5.0;
-    this.cameraOffset = vec3.fromValues(0, this.cameraHeight, this.cameraDistance);
-    this.firstPersonHeightOffset = 5.8;
+    this.firstPersonHeightOffset = 16.0;
+    this.thirdPersonHeightOffset = 10.0;
 
     this.camera.onFirstPersonRotationChange = (rotation) => {
       this.rotation = rotation;
@@ -75,6 +74,29 @@ export class CharacterController {
     this.setUpControls();
 
     this.setWalkAnimationType('normal');
+  }
+
+  initSpeedModel(moveSpeed = 0.13, rotationSpeed = 0.2) {
+    if (this.model) {
+      console.log(`[${this.model.name}] exponential speed model initialized with moveSpeed: ${moveSpeed}, Math.exp(-moveSpeed): ${this.normalizationFactor(moveSpeed)}`);
+      this.model.animationSpeed = moveSpeed * this.animationSpeedMultiplier * this.normalizationFactor(moveSpeed);
+      console.log(`[${this.model.name}] animation speed set to: ${this.model.animationSpeed}`);
+      this.rotationSpeed = rotationSpeed;
+      this.moveSpeed = moveSpeed ;
+      this.baseSpeed = moveSpeed ;
+      this.baseRotationSpeed = rotationSpeed;
+      this.model.baseAnimationSpeed = this.model.animationSpeed;
+      console.log(`[${this.model.name}] moveSpeed: ${this.moveSpeed},`);
+    }
+  }
+
+  resetSpeed() {
+    if (this.model) {
+      this.model.animationSpeed = this.model.baseAnimationSpeed;
+      this.rotationSpeed = this.baseRotationSpeed;
+      this.moveSpeed = this.baseSpeed;
+      this.setWalkAnimationType('normal');
+    }
   }
 
   updateSpeed(newSpeed) {
@@ -102,8 +124,8 @@ export class CharacterController {
       const key = e.key.toLowerCase();
       if (this.keys.hasOwnProperty(key)) {
 
-        //console.log(`Moving speed: ${this.moveSpeed}, Rotation speed: ${this.rotationSpeed}`);
-        //console.log(`Animation speed: ${this.model ? this.model.animationSpeed : 'N/A'}`);
+        console.log(`Moving speed: ${this.moveSpeed}, Rotation speed: ${this.rotationSpeed}`);
+        console.log(`Animation speed: ${this.model ? this.model.animationSpeed : 'N/A'}`);
 
         if (key === 'w' || key === 'arrowup') {
           if (e.repeat) return;
@@ -137,7 +159,8 @@ export class CharacterController {
         const isBackward = (key === 's' || key === 'arrowdown');
 
         if (isForward) {
-          if (e.repeat) return;
+          if (e.repeat)  return;
+      
           console.log('Stopped moving forward');
 
           if (this.model && !this.camera.isOrbital) {
@@ -146,7 +169,8 @@ export class CharacterController {
         }
 
         if (isBackward) {
-          if (e.repeat) return;
+          if (e.repeat)  return;
+        
           console.log('Stopped moving backward');
 
           if (this.model && !this.camera.isOrbital) {
@@ -159,8 +183,9 @@ export class CharacterController {
         console.log(`Animation speed: ${animationSpeed}, Time before end: ${timeBeforeEnd}`);
 
         if ((isForward || isBackward) && timeBeforeEnd > 0) {
+         
           console.log(`Waiting ${timeBeforeEnd}ms before stopping movement`);
-          setTimeout(() => {
+          this.timerWalk = setTimeout(() => {
             this.keys[key] = false;
             this.isMoving = false;
           }, timeBeforeEnd / animationSpeed);
@@ -314,8 +339,6 @@ export class CharacterController {
 
   }
 
-
-
   getMoveSpeed() {
     const animationWalkMultiplier = CharacterAnimations.getMovementSensitivity(this.model.currentWalkType) || 1.0;
     let walkMultiplierPhase = CharacterAnimations.getMovementPhase(this.model.currentAnimation.name) || 1.0;
@@ -325,7 +348,7 @@ export class CharacterController {
     // apply a pre-phase walk 
     if ((performance.now() - this.startTimeMoving) < timeBeforeStart) {
       const elapsed = (performance.now() - this.startTimeMoving) / timeBeforeStart;
-      walkMultiplierPhase = 1 * elapsed;
+      walkMultiplierPhase = elapsed;
     } else {
       walkMultiplierPhase = 1.0;
 
@@ -356,7 +379,7 @@ export class CharacterController {
 
       const cameraTarget = vec3.create();
       vec3.copy(cameraTarget, this.position);
-      cameraTarget[1] += 4.0;
+      cameraTarget[1] += this.thirdPersonHeightOffset;
 
       this.camera.updateThirdPersonTarget(cameraTarget);
 
@@ -391,7 +414,7 @@ export class CharacterController {
 
     if (debug) console.log(`[${this.model.name}] Setting animation to: ${animationName}`);
 
-    // TODO obj animation  generalize 
+    
     if (animationName === 'StandToSit') {
       const offset = 7.3;
       const behindX = this.position[0] - Math.sin(this.rotation) * offset;

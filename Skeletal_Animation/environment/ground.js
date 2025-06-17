@@ -5,7 +5,7 @@ import { BaseModel } from '../models/base_model.js';
 
 export class Ground extends BaseModel {
 
-  constructor(gl) {
+  constructor(gl, size =100) {
     super(gl);
     this.isLoad = false;
     this.texturesLoaded = false;
@@ -19,7 +19,7 @@ export class Ground extends BaseModel {
           console.log(`[${this.name}] shader program initialized:`, program);
           this.program = program;
           this.isLoad = true;
-          this.initGeometry(100);
+          this.initGeometry(size);
 
           this.loadGroundTextures().then((textures) => {
             this.textures = textures;
@@ -56,9 +56,9 @@ export class Ground extends BaseModel {
     gl.useProgram(this.program);
     for (const { tex, uniform, unit } of units) {
       const uniformLoc = gl.getUniformLocation(this.program, uniform);
-      if (uniformLoc !== null) {
+      if (uniformLoc !== null && tex) {
         gl.activeTexture(gl.TEXTURE0 + unit);
-        gl.bindTexture(gl.TEXTURE_2D, tex || fallback);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
         if (init)
           gl.uniform1i(uniformLoc, unit);
       }
@@ -77,10 +77,10 @@ export class Ground extends BaseModel {
     const gl = this.gl;
     gl.useProgram(this.program);
 
-    const baseColorTexture = await TextureUtils.loadTextureImage(this, 'models/assets/textures/ground/square_floor_diff_4k.jpg');
-    const normalTexture = await TextureUtils.loadTextureImage(this, 'models/assets/textures/ground/square_floor_nor_4k.png');
-    const roughnessTexture = await TextureUtils.loadTextureImage(this, 'models/assets/textures/ground/square_floor_rough_4k.png');
-
+    const baseColorTexture = await TextureUtils.loadTextureImage(this, 'models/assets/textures/ground/diff.jpg');
+   // const normalTexture = await TextureUtils.loadTextureImage(this, 'models/assets/textures/ground/nor.png');
+    const roughnessTexture = await TextureUtils.loadTextureImage(this, 'models/assets/textures/ground/rough.jpg');
+    const normalTexture =  null; 
 
     return await {
       color: baseColorTexture,

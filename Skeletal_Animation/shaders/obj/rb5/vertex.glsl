@@ -11,6 +11,7 @@ uniform mat4 projection, view, model;
 uniform mat3 normalMatrix;
 
 varying vec3 vNormal;
+
 varying vec2 texCoords;
 varying vec3 vFragPos;
 

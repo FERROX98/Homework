@@ -216,7 +216,7 @@ def generate_js_animation_mapping(name):
 
 
 if __name__ == "__main__":
-    walk_anims, general_anims = load_name_animation("rb4")
+    walk_anims, general_anims = load_name_animation("rb5")
     print("Walk animations:", walk_anims)
     print("General animations:", general_anims)
     print("\n" + "="*50)

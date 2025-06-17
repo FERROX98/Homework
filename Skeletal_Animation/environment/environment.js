@@ -3,7 +3,7 @@ import { Wall } from './wall.js';
 import { mat4, vec3 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
 import { GradientSky } from './sky.js';
 import { Model } from '../models/model.js';
-
+import { Character } from '../models/character.js';
 
 const debug = false; 
 export class Environment {
@@ -33,17 +33,18 @@ export class Environment {
     this.ambientIntensity = 0.14;
     
     // sun - ground   
-    this.sunPosition = vec3.fromValues(0.0, 100.0, 0.0); 
+    this.sunPosition = vec3.fromValues(-35, 110.0, 5.0); 
+    this.baseSunPosition = this.sunPosition.slice(); 
     this.dirLightDir = vec3.create();
 
-    this.setSunPosition(-35, 110.0, 5.0);  
+    this.setSunPosition(this.sunPosition[0], this.sunPosition[1], this.sunPosition[2]);  
 
     this.updateLightDirection();
     this.init();
   } 
 
   init() {
-    this.ground = new Ground(this.gl);
+    this.ground = new Ground(this.gl, 100);
     console.log('Ground initialized');
     
     this.wall = new Wall(this.gl, this.groundSize);
@@ -75,7 +76,6 @@ export class Environment {
     this.modelTransforms.set(model, transform);
     console.log(`Added model ${model.name} to environment with transform:`, transform);
     
-    //TODO FIX
     if (this.onModelsUpdated) {
       this.onModelsUpdated();
     }
@@ -120,9 +120,10 @@ export class Environment {
         continue;
       }
 
-      if (transform)
+      if (transform){
         if (debug) console.log(`Rendering model ${model.name} with transform:`, transform);
         trianglesCount += model.render(proj, view, lights, transform);
+      }
     }
     return trianglesCount;
   }
@@ -170,10 +171,27 @@ export class Environment {
   }
 
   getModelsList() {
-    return this.modelTransforms.keys();
+    return this.modelTransforms.keys().filter(model => !(model instanceof Character) && !(model.name === 'chair'));
   }
 
   getModelTransform(model) {
     return this.modelTransforms.get(model) || null;
+  }
+
+  setModelVisibility(model, isVisible) {
+    if (this.modelTransforms.has(model)) {
+      model.isVisible = isVisible;
+      console.log(`Model ${model.name} visibility set to ${isVisible}`);
+    }
+  }
+
+  resetSunPosition() {
+    vec3.copy(this.sunPosition, this.baseSunPosition);
+    this.updateLightDirection();
+    this.updateModelTransform(this.sun, 
+      [this.sunPosition[0], this.sunPosition[1], this.sunPosition[2]], 
+      [0, 0, 0], 
+      [this.sunScale, this.sunScale, this.sunScale]
+    );
   }
 }
