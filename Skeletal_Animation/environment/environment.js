@@ -19,16 +19,12 @@ export class Environment {
 
     this.sun = null; 
     this.sunScale = 5;
-    this.sunPosition = vec3.fromValues(-35, 110.0, 5.0);
 
     this.onModelsUpdated = null;
 
     this.modelTransforms = new Map();
 
-    // sun - ground  
-    this.dirLightDir = vec3.create();
-    vec3.subtract(this.dirLightDir, this.sunPosition, this.groundCenter);
-    vec3.normalize(this.dirLightDir, this.dirLightDir);
+
     
     this.dirLightColor = [1.0, 0.95, 0.8, 1.0];
     this.dirLightIntensity = 1.0;
@@ -36,8 +32,13 @@ export class Environment {
     this.ambientLight = [0.4, 0.42, 0.45, 1.0];
     this.ambientIntensity = 0.14;
     
+    // sun - ground   
+    this.sunPosition = vec3.fromValues(0.0, 100.0, 0.0); 
+    this.dirLightDir = vec3.create();
+
+    this.setSunPosition(-35, 110.0, 5.0);  
+
     this.updateLightDirection();
-    
     this.init();
   } 
 
@@ -96,11 +97,12 @@ export class Environment {
   renderEnvironment(proj, view) {
     let trianglesCount = 0;
 
-    const lights = {
+    let lights = {
       dirLightDir: this.dirLightDir,
       dirLightColor: this.dirLightColor,
       ambientLight: this.ambientLight,
-      ambientIntensity: this.ambientIntensity
+      ambientIntensity: this.ambientIntensity,
+      lightPosition: this.sunPosition
     };
 
     if (this.sky)
@@ -126,12 +128,13 @@ export class Environment {
   }
 
   setDirectionalLightIntensity(intensity) {
-    this.dirLightIntensity = Math.max(0, Math.min(2, intensity));
+    this.dirLightIntensity = Math.max(0, Math.min(20, intensity));
     
     this.dirLightColor = [
       1.0 * this.dirLightIntensity,
       0.9 * this.dirLightIntensity, 
-      0.7 * this.dirLightIntensity
+      0.7 * this.dirLightIntensity, 
+      1.0
     ];
   }
 
@@ -140,10 +143,9 @@ export class Environment {
     vec3.normalize(this.dirLightDir, this.dirLightDir);
   }
 
-  setSunPosition(x, y, z) {
+  setSunPosition(x, y, z) { 
     vec3.set(this.sunPosition, x, y, z);
     this.updateLightDirection();
-    
     if (this.sun) {
       this.updateModelTransform(this.sun, 
         [x, y, z], 

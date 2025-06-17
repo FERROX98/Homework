@@ -3,9 +3,6 @@ import * as utils from '../shaders/shader_utils.js';
 import { mat4, mat3 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
 import { BaseModel } from '../models/base_model.js';
 
-const vsPath = 'shaders/ground/vertex.glsl';
-const fsPath = 'shaders/ground/fragment.glsl';
-
 export class Ground extends BaseModel {
 
   constructor(gl) {
@@ -13,34 +10,39 @@ export class Ground extends BaseModel {
     this.isLoad = false;
     this.texturesLoaded = false;
     this.model = mat4.create();
+    this.name = 'ground';
+    utils.resolveShaderPaths(this.name).then((shadersPath) => {
+      // shader 
+      console.log(`[${this.name}] Resolved shaders:`, shadersPath);
+      utils.initShader(gl, shadersPath.vs, shadersPath.fs).then(program => {
+        if (program) {
+          console.log(`[${this.name}] shader program initialized:`, program);
+          this.program = program;
+          this.isLoad = true;
+          this.initGeometry(100);
 
-    utils.initShader(gl, vsPath, fsPath).then(program => {
-      if (program) {
-        console.log('[Ground] shader program initialized:', program);
-        this.program = program;
-        this.isLoad = true;
-        this.initGeometry(100);
+          this.loadGroundTextures().then((textures) => {
+            this.textures = textures;
+            console.log(`[${this.name}]  textures loaded:`, this.textures);
+            this.initTexture();
+          });
+        } else {
+          console.error('Failed to initialize ground shader program');
+        }
 
-        this.loadGroundTextures().then((textures) => {
-          this.textures = textures;
-          console.log('[Ground]  textures loaded:', this.textures);
-          this.initTexture();
-        });
-      } else {
-        console.error('Failed to initialize ground shader program');
-      }
-
-      this.uniforms = {
-        projection: gl.getUniformLocation(program, 'projection'),
-        view: gl.getUniformLocation(program, 'view'),
-        model: gl.getUniformLocation(program, 'model'),
-        ambientLight: gl.getUniformLocation(program, 'ambientLight'),
-        ambientIntensity: gl.getUniformLocation(program, 'ambientIntensity'),
-        dirLightDir: gl.getUniformLocation(program, 'dirLightDir'),
-        dirLightColor: gl.getUniformLocation(program, 'dirLightColor'),
-        normalMatrix: gl.getUniformLocation(program, 'normalMatrix'),
-        isTextureEnabled: gl.getUniformLocation(program, 'isTextureEnabled'),
-      };
+        this.uniforms = {
+          projection: gl.getUniformLocation(program, 'projection'),
+          view: gl.getUniformLocation(program, 'view'),
+          model: gl.getUniformLocation(program, 'model'),
+          ambientLight: gl.getUniformLocation(program, 'ambientLight'),
+          ambientIntensity: gl.getUniformLocation(program, 'ambientIntensity'),
+          dirLightDir: gl.getUniformLocation(program, 'dirLightDir'),
+          dirLightColor: gl.getUniformLocation(program, 'dirLightColor'),
+          normalMatrix: gl.getUniformLocation(program, 'normalMatrix'),
+          isTextureEnabled: gl.getUniformLocation(program, 'isTextureEnabled'),
+          lightPosition: gl.getUniformLocation(program, 'lightPosition'),
+        };
+      });
     });
   }
 
@@ -90,7 +92,8 @@ export class Ground extends BaseModel {
   initGeometry(size) {
     const gl = this.gl;
 
-    const quad = this.createGroundQuad(size);
+    this.quad = this.createGroundQuad(size);
+    const quad = this.quad;
 
     this.vertPos = gl.getAttribLocation(this.program, 'position');
     if (this.vertPos === -1)
@@ -162,27 +165,7 @@ export class Ground extends BaseModel {
 
     const modelMatrix = this.model;
 
-    // vertex
-    gl.uniformMatrix4fv(this.uniforms.projection, false, proj);
-    gl.uniformMatrix4fv(this.uniforms.view, false, view);
-    gl.uniformMatrix4fv(this.uniforms.model, false, modelMatrix);
-
-    // fragment
-    gl.uniform3fv(this.uniforms.dirLightDir, lights.dirLightDir);
-    gl.uniform4fv(this.uniforms.dirLightColor, lights.dirLightColor);
-    gl.uniform4fv(this.uniforms.ambientLight, lights.ambientLight);
-    gl.uniform1f(this.uniforms.ambientIntensity, lights.ambientIntensity);
-
-
-    const modelViewMatrix = mat4.create();
-    mat4.multiply(modelViewMatrix, view, modelMatrix);
-
-    const normalMatrix = mat3.create();
-    mat3.fromMat4(normalMatrix, modelViewMatrix);
-    mat3.invert(normalMatrix, normalMatrix);
-    mat3.transpose(normalMatrix, normalMatrix);
-
-    gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
+    this.onPreDraw(modelMatrix, proj, view, lights, this.uniforms);
 
     if (this.texturesLoaded)
       this.bindTexture();

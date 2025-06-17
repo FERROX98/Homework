@@ -19,8 +19,8 @@ void main() {
   }
   
   
-  vec4 baseColor= texture2D(colorTex, texCoords);
-  baseColor.a = 1.0;
+vec3 baseColor = pow(texture2D(colorTex, texCoords).rgb, vec3(2.2));
+ // baseColor.a = 1.0;
   vec3 metalRough = texture2D(metalRoughTex, texCoords).rgb;
   vec3 normalMap = texture2D(normalTex, texCoords).rgb * 2.0 - 1.0;
   vec3 normal = normalize(vNormal + normalMap * 0.4);
@@ -29,20 +29,20 @@ void main() {
   float metal = metalRough.b;
   float rough = metalRough.g;
 
-  vec3 dirLight = normalize(-dirLightDir);
+  vec3 dirLight = normalize(dirLightDir);
 //vec3 dirLight = normalize(vec3(0.5, 1.0, 0.3)); 
 
   vec3 viewDir = normalize(-vFragPos);
   vec3 halfDir = normalize(dirLight + viewDir);
 
-  float cosTheta =  max(0.0,dot(normal, dirLight));
+float cosTheta = max(dot(normal, dirLight), 0.05); // soft floor
   // Diffuse term
   vec3 diffuseTerm =  baseColor.rgb * cosTheta; 
   
   float cosPhi =  max(0.0,dot(halfDir, normal));
 
 
-  float shininess =  clamp(12.0 * (1.0 - rough), 1.0, 64.0);
+  float shininess =  clamp(2.0 * (1.0 - rough), 1.0, 2323.0);
   vec3 F0 = mix(vec3(0.04), baseColor.rgb, metal);
   // Specular term
   vec3 specularTerm = pow(cosPhi, shininess) * dirLightColor.rgb * F0;

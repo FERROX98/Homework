@@ -29,7 +29,7 @@ void main() {
   float metal = metalRough.b;
   float rough = metalRough.g;
 
-  vec3 dirLight = normalize(-dirLightDir);
+  vec3 dirLight = normalize(dirLightDir);
 //vec3 dirLight = normalize(vec3(0.5, 1.0, 0.3)); 
 
   vec3 viewDir = normalize(-vFragPos);
@@ -42,14 +42,14 @@ void main() {
   float cosPhi =  max(0.0,dot(halfDir, normal));
 
 
-  float shininess =  clamp(12.0 * (1.0 - rough), 1.0, 64.0);
+  float shininess =  clamp(2.0 * (1.0 - rough), 1.0, 64.0);
   vec3 F0 = mix(vec3(0.04), baseColor.rgb, metal);
   // Specular term
   vec3 specularTerm = pow(cosPhi, shininess) * dirLightColor.rgb * F0;
   
   //vec3 specularTerm = pow(cosPhi, shininess) * dirLightColor.rgb; 
   // Ambient term
-  vec3 ambientTerm = ambientLight.rgb * ambientIntensity;
-  gl_FragColor = vec4(ambientTerm,1.0) + vec4(diffuseTerm,1.0) + vec4(specularTerm,1.0);
+  vec4 ambientTerm = ambientLight* ambientIntensity;
+  gl_FragColor = ambientTerm + vec4(diffuseTerm,1.0) + vec4(specularTerm,1.0);
 
 }

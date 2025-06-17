@@ -14,8 +14,8 @@ void main() {
     vec4 world_space = model * vec4(position, 1.0);
 
     // camera centered at origin 
-   vFragPos = vec3(view * world_space);
-   // vFragPos = vec3(modelViewMatrix * vec4(position, 1.0));
+    vFragPos = vec3(view * world_space);
+
     // invTranspMV * normal
     vNormal = normalize(normalMatrix * normal);
     

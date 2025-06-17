@@ -2,12 +2,11 @@ precision highp float;
 uniform sampler2D colorTex;
 uniform sampler2D normalTex;
 uniform sampler2D metalRoughTex;
-uniform sampler2D emissionTex;
 uniform bool isTextureEnabled;
 
 uniform vec3 dirLightDir;
-uniform vec3 dirLightColor;
-uniform vec3 ambientLight;
+uniform vec4 dirLightColor;
+uniform vec4 ambientLight;
 uniform float ambientIntensity;
 
 varying vec3 vNormal;
@@ -15,60 +14,42 @@ varying vec2 texCoords;
 varying vec3 vFragPos;
 
 void main() {
-  vec3 baseColor = vec3(0.7, 0.7, 0.75); // Colore di default grigio chiaro
-  vec3 normal = normalize(vNormal);
-  float roughness = 0.6;
-  float metallic = 0.0;
-  
-  // Prova a caricare le texture se disponibili
-  if (isTextureEnabled) {
-    vec4 colorSample = texture2D(colorTex, texCoords);
-    if (colorSample.a > 0.0) { // Verifica che la texture sia valida
-      baseColor = colorSample.rgb;
-      
-      // Normal map solo se la texture è valida
-      vec3 normalSample = texture2D(normalTex, texCoords).rgb;
-      if (length(normalSample) > 0.1) {
-        vec3 normalMap = normalSample * 2.0 - 1.0;
-        normal = normalize(vNormal + normalMap * 0.3);
-      }
-      
-      // Roughness dalla texture se disponibile
-      vec3 roughSample = texture2D(metalRoughTex, texCoords).rgb;
-      if (length(roughSample) > 0.1) {
-        roughness = roughSample.r; // Usa canale rosso per roughness
-      }
-    }
+  if (!isTextureEnabled) {
+      gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
   }
+  
+  
+vec3 baseColor = pow(texture2D(colorTex, texCoords).rgb, vec3(2.2));
+  //baseColor.a = 1.0;
+  vec3 metalRough = texture2D(metalRoughTex, texCoords).rgb;
+  vec3 normalMap = texture2D(normalTex, texCoords).rgb * 2.0 - 1.0;
+  vec3 normal = normalize(vNormal + normalMap * 0.4);
 
-  // Lighting semplificato e robusto con ombre più morbide
-  vec3 dirLight = normalize(-dirLightDir);
-  float diffFactor = max(dot(normal, dirLight), 0.0);
-  
-  // Wrapped lighting per ombre più naturali
-  float wrappedDiff = max((dot(normal, dirLight) + 0.5) / 1.5, 0.2);
-  
-  // Luce diffusa più morbida
-  vec3 diffuseDir = wrappedDiff * dirLightColor * baseColor * 0.7;
-  
-  // Luce ambientale più forte
-  vec3 ambientTerm = ambientLight * ambientIntensity * baseColor * 0.9;
-  
-  // Aggiungi un termine di fill light
-  vec3 fillLight = vec3(0.4, 0.45, 0.5) * 0.2 * baseColor;
+  // GLTF standard PBR material
+  float metal = metalRough.b;
+  float rough = metalRough.g;
 
-  // Specular semplificato
+  vec3 dirLight = normalize(dirLightDir);
+//vec3 dirLight = normalize(vec3(0.5, 1.0, 0.3)); 
+
   vec3 viewDir = normalize(-vFragPos);
   vec3 halfDir = normalize(dirLight + viewDir);
-  float specAngle = max(dot(normal, halfDir), 0.0);
-  float shininess = 8.0 * (1.0 - roughness);
-  
-  vec3 specular = pow(specAngle, shininess) * dirLightColor * 0.1;
 
-  vec3 finalColor = ambientTerm + diffuseDir + fillLight + specular;
+float cosTheta = max(dot(normal, dirLight), 0.05); // soft floor
+  // Diffuse term
+  vec3 diffuseTerm =  baseColor.rgb * cosTheta; 
   
-  // Clamp per evitare valori troppo alti
-  finalColor = clamp(finalColor, 0.0, 1.0);
+  float cosPhi =  max(0.0,dot(halfDir, normal));
+
+
+  float shininess =  clamp(16.0 * (1.0 - rough), 1.0, 64.0);
+  vec3 F0 = mix(vec3(0.04), baseColor.rgb, metal);
+  // Specular term
+  vec3 specularTerm = pow(cosPhi, shininess) * dirLightColor.rgb * F0;
   
-  gl_FragColor = vec4(finalColor, 1.0);
+  //vec3 specularTerm = pow(cosPhi, shininess) * dirLightColor.rgb; 
+  // Ambient term
+  vec4 ambientTerm = ambientLight* ambientIntensity;
+  gl_FragColor = ambientTerm + vec4(diffuseTerm,1.0) + vec4(specularTerm,1.0);
+
 }

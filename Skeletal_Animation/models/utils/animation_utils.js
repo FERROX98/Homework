@@ -235,7 +235,7 @@ export class AnimationUtils {
     if (!jointMatrices || jointMatrices.length === 0)
       return;
 
-    const jointMatrixLoc = gl.getUniformLocation(model.program, 'jointMatrices');
+    const jointMatrixLoc = model.uniforms.jointMatrices;
 
     if (jointMatrixLoc !== -1 && jointMatrixLoc !== null) {
       const flatJointData = new Float32Array(model.jointMatrices.length * 16);

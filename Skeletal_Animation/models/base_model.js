@@ -1,5 +1,5 @@
 
-
+import { vec3, mat3, mat4, vec4 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
 const debug = false;
 
 export class BaseModel {
@@ -34,5 +34,37 @@ export class BaseModel {
         } else if (location === -1) {
             if (debug) console.warn('Trying to bind buffer to invalid attribute location (-1)', this.name);
         }
+    }
+
+    onPreDraw(modelMatrix, proj, view, lights, uniforms) {
+        const gl = this.gl;
+        gl.useProgram(this.program);
+        // vertex
+        gl.uniformMatrix4fv(uniforms.projection, false, proj);
+        gl.uniformMatrix4fv(uniforms.view, false, view);
+        gl.uniformMatrix4fv(uniforms.model, false, modelMatrix);
+        
+        // direction light vector 
+        const lightDirViewSpace = vec4.fromValues( lights.dirLightDir[0], lights.dirLightDir[1], 
+                        lights.dirLightDir[2], 0.0);
+        vec4.transformMat4(lightDirViewSpace, lightDirViewSpace, view);
+        vec4.normalize(lightDirViewSpace, lightDirViewSpace);
+        
+        // fragment
+        gl.uniform4fv(uniforms.dirLightDir, lightDirViewSpace);
+        gl.uniform4fv(uniforms.dirLightColor, lights.dirLightColor);
+        gl.uniform4fv(uniforms.ambientLight, lights.ambientLight);
+        gl.uniform1f(uniforms.ambientIntensity, lights.ambientIntensity);
+        gl.uniform3fv(uniforms.lightPosition, lights.lightPosition);
+
+        const modelViewMatrix = mat4.create();
+        mat4.multiply(modelViewMatrix, view, modelMatrix);
+
+        const normalMatrix = mat3.create();
+        mat3.fromMat4(normalMatrix, modelViewMatrix);
+        mat3.invert(normalMatrix, normalMatrix);
+        mat3.transpose(normalMatrix, normalMatrix);
+
+        gl.uniformMatrix3fv(uniforms.normalMatrix, false, normalMatrix);
     }
 }

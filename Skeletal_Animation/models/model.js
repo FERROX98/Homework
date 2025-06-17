@@ -59,7 +59,8 @@ export class Model extends BaseModel {
           dirLightColor: gl.getUniformLocation(program, 'dirLightColor'),
           normalMatrix: gl.getUniformLocation(program, 'normalMatrix'),
           isTextureEnabled: gl.getUniformLocation(program, 'isTextureEnabled'),
-         // modelViewMatrix: gl.getUniformLocation(program, 'modelViewMatrix'),
+          lightPosition: gl.getUniformLocation(program, 'lightPosition'),
+          jointMatrices: gl.getUniformLocation(program, 'jointMatrices')
         };
 
         GLTFUtils.loadGLTF(this, `models/assets/${modelPath}`).then(() => {
@@ -207,37 +208,9 @@ export class Model extends BaseModel {
     gl.useProgram(this.program);
 
     const modelMatrix = transform || this.modelMatrix;
-
-    // vertex
-    gl.uniformMatrix4fv(this.uniforms.projection, false, proj);
-    gl.uniformMatrix4fv(this.uniforms.view, false, view);
-    gl.uniformMatrix4fv(this.uniforms.model, false, modelMatrix);
-
-    // transform in view space lights
-    const dirLightDirView = vec3.create();
-    const rotOnlyView = mat3.create();
-    mat3.fromMat4(rotOnlyView, view);
-    vec3.transformMat3(dirLightDirView, lights.dirLightDir, rotOnlyView);
-    vec3.normalize(dirLightDirView, dirLightDirView);
-    
-    // fragment
-    gl.uniform3fv(this.uniforms.dirLightDir, dirLightDirView);
-    gl.uniform4fv(this.uniforms.dirLightColor, lights.dirLightColor);
-    gl.uniform4fv(this.uniforms.ambientLight, lights.ambientLight);
-    gl.uniform1f(this.uniforms.ambientIntensity, lights.ambientIntensity);
-
-
-    const modelViewMatrix = mat4.create();
-    mat4.multiply(modelViewMatrix, view, modelMatrix);
-
-    const normalMatrix = mat3.create();
-    mat3.fromMat4(normalMatrix, modelViewMatrix); 
-    mat3.invert(normalMatrix, normalMatrix);
-    mat3.transpose(normalMatrix, normalMatrix);
-
-    gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
-
-
+  
+    this.onPreDraw(modelMatrix, proj, view, lights, this.uniforms);
+  
     let triangleCount = 0;
     this.handleAnimation();
 
