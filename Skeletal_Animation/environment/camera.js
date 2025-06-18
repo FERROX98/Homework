@@ -30,7 +30,7 @@ export class Camera {
     this.near = 0.1;
     this.far = 1000;
 
-    this.cameraMode = 'orbital';
+    this.cameraMode = 'thirdPerson';
 
     this.thirdPersonCameraPosition = vec3.create();
     this.thirdPersonTarget = vec3.create();

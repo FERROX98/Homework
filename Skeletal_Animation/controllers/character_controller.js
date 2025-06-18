@@ -120,78 +120,111 @@ export class CharacterController {
 
   initControls() {
 
+    this.startTimeAnimation = 0; 
+    this.doubleClickThreshold = 300;
+    
     window.addEventListener('keydown', (e) => {
+      if (!this.model || this.camera.isOrbital)
+        return;
+
       const key = e.key.toLowerCase();
       if (this.keys.hasOwnProperty(key)) {
+        const isForward = (key === 'w' || key === 'arrowup');
+        const isBackward = (key === 's' || key === 'arrowdown');
+        // if alreeady pressed, ignore
+        if (this.keys[key]) 
+          return;
 
-        console.log(`Moving speed: ${this.moveSpeed}, Rotation speed: ${this.rotationSpeed}`);
-        console.log(`Animation speed: ${this.model ? this.model.animationSpeed : 'N/A'}`);
+        // if other keys pressed, reset movement
+        const otherKeysPressed = Object.keys(this.keys)
+                  .filter(k => k !== key && this.keys[k] && (k === 'w' ||  k=== 's') && (key !== 'a' && key !== 'd' ));
+                      
+        if (otherKeysPressed.length > 0) {
+          console.log(`Other keys pressed:`, otherKeysPressed);
+          this.isMoving = false;
+          otherKeysPressed.forEach(k => this.keys[k] = false); 
+        }
 
-        if (key === 'w' || key === 'arrowup') {
-          if (e.repeat) return;
-          console.log('Moving forward');
+        // if there is a double click detected, ignore the movement till the end of the animation
+        const now = performance.now();  
+        
+        if ((isForward ||isBackward) && this.startTimeAnimation  && (now - this.startTimeAnimation  < this.doubleClickThreshold)) {
+          console.log(`Detected double click on ${key}`);
+          console.log('Double trheshold:', this.doubleClickThreshold);
+          return;
+        } 
 
-          if (this.model && !this.camera.isOrbital) {
-            this.startTimeMoving = performance.now();
-            this.model.setStartAnimationWalk();
-          }
-        } else if (key === 's' || key === 'arrowdown') {
-          if (e.repeat) return;
+        if (isForward) {
+          console.log('Moving forward')
+          this.model.setStartAnimationWalk();
+          this.startTimeMoving = performance.now();
+          this.startTimeAnimation = performance.now();
+          
+        } else if (isBackward) {
           console.log('Moving backward');
-
-          if (this.model && !this.camera.isOrbital) {
-            this.startTimeMoving = performance.now();
-            this.model.setStartAnimationWalk(false);
-          }
+          this.model.setStartAnimationWalk(false);
+          this.startTimeMoving = performance.now();
+          this.startTimeAnimation = performance.now();
         }
 
         this.keys[key] = true;
         this.isMoving = true;
-
         e.preventDefault();
       }
     });
 
     window.addEventListener('keyup', (e) => {
+      if (!this.model || this.camera.isOrbital)
+        return;
+
       const key = e.key.toLowerCase();
       if (this.keys.hasOwnProperty(key)) {
         const isForward = (key === 'w' || key === 'arrowup');
         const isBackward = (key === 's' || key === 'arrowdown');
 
+        // check if there is another key pressed among forward ,backward
+        if (!this.keys[key]) {
+          console.log(`Key ${key} is not pressed, ignoring keyup event`);
+          return;
+        }
+
         if (isForward) {
-          if (e.repeat)  return;
-      
+          if (e.repeat)
+              return;
+          
           console.log('Stopped moving forward');
-
-          if (this.model && !this.camera.isOrbital) {
-            this.model.setEndAnimationWalk();
-          }
-        }
-
-        if (isBackward) {
-          if (e.repeat)  return;
-        
+          this.model.setEndAnimationWalk();
+        }else if (isBackward) {
+          if (e.repeat )
+              return;
+          
           console.log('Stopped moving backward');
-
-          if (this.model && !this.camera.isOrbital) {
-            this.model.setEndAnimationWalk(false);
-          }
+          this.model.setEndAnimationWalk(false);
         }
+
         const timeBeforeEnd = CharacterAnimations.getAnimationByName(this.model.currentAnimation.name).waitAfter || 0;
         const animationSpeed = this.model ? this.model.animationSpeed : 1.0;
 
         console.log(`Animation speed: ${animationSpeed}, Time before end: ${timeBeforeEnd}`);
 
         if ((isForward || isBackward) && timeBeforeEnd > 0) {
-         
+          
           console.log(`Waiting ${timeBeforeEnd}ms before stopping movement`);
           this.timerWalk = setTimeout(() => {
             this.keys[key] = false;
             this.isMoving = false;
+            this.doubleClickThreshold = 0;
+            this.startTimeAnimation  = null; 
+            console.log('Movement stopped after waiting period');
+
           }, timeBeforeEnd / animationSpeed);
+
+          this.doubleClickThreshold =  timeBeforeEnd / animationSpeed + 0.1 * timeBeforeEnd / animationSpeed; 
         } else {
           this.keys[key] = false;
           this.isMoving = false;
+          this.startTimeAnimation  = null; 
+          this.doubleClickThreshold = 0; 
         }
         e.preventDefault();
       }
@@ -267,13 +300,6 @@ export class CharacterController {
       Math.cos(this.rotation),
     );
 
-    // right = yaw(y) * x 
-    // const right = vec3.fromValues(
-    //   Math.cos(this.rotation),
-    //   0,
-    //   -Math.sin(this.rotation)
-    // );
-
     let moveDirection = vec3.create();
 
     if (this.keys.w || this.keys.arrowup) {
@@ -335,7 +361,7 @@ export class CharacterController {
           this.position[2] = newPosZ[2];
         }
 
-        console.log('Movement blocked by boundary limits');
+     //   console.log('Movement blocked by boundary limits');
       }
     }
 
@@ -346,14 +372,14 @@ export class CharacterController {
     let walkMultiplierPhase = CharacterAnimations.getMovementPhase(this.model.currentAnimation.name) || 1.0;
 
     let walkMultiplier = 1.0;
-    const timeBeforeStart = CharacterAnimations.getAnimationByName(this.model.currentAnimation.name).waitBefore || 0;
+    // wait before speed up 
+    const intervalSpeedUp = CharacterAnimations.getAnimationByName(this.model.currentAnimation.name).waitBefore || 0;
     // apply a pre-phase walk 
-    if ((performance.now() - this.startTimeMoving) < timeBeforeStart) {
-      const elapsed = (performance.now() - this.startTimeMoving) / timeBeforeStart;
+    if ((performance.now() - this.startTimeMoving) < intervalSpeedUp) {
+      const elapsed = (performance.now() - this.startTimeMoving) / intervalSpeedUp;
       walkMultiplierPhase = elapsed;
     } else {
       walkMultiplierPhase = 1.0;
-
     }
     if (debug) console.log(`[${this.model.name}] Walk multiplier: ${walkMultiplier}, Phase: ${walkMultiplierPhase}, Animation type: ${this.model.currentAnimation.name}`);
 

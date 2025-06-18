@@ -69,10 +69,17 @@ export class TextureUtils {
         };
     }
 
+
+
     static setTexture(model, textures, init=false) {
         const gl = model.gl;
         gl.useProgram(model.program);
 
+
+        if (!model.fallbackTextures) {
+            this.createFallbackTextures(model);
+        }
+        
         const units = [
             { tex: textures.color, fallback: model.fallbackTextures.color, uniform: 'colorTex', unit: 0 },
             { tex: textures.metalRough, fallback: model.fallbackTextures.metalRough, uniform: 'metalRoughTex', unit: 1 },
