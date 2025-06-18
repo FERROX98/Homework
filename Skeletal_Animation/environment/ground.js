@@ -7,7 +7,7 @@ export class Ground extends BaseModel {
 
   constructor(gl, size =100) {
     super(gl);
-    this.isLoad = false;
+    this.isLoaded = false;
     this.texturesLoaded = false;
     this.model = mat4.create();
     this.name = 'ground';
@@ -18,7 +18,7 @@ export class Ground extends BaseModel {
         if (program) {
           console.log(`[${this.name}] shader program initialized:`, program);
           this.program = program;
-          this.isLoad = true;
+          this.isLoaded = true;
           this.initGeometry(size);
 
           this.loadGroundTextures().then((textures) => {
@@ -156,7 +156,7 @@ export class Ground extends BaseModel {
 
   render(proj, view, lights) {
 
-    if (!this.isLoad) {
+    if (!this.isLoaded) {
       return;
     }
 

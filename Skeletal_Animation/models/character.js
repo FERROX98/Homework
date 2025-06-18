@@ -46,6 +46,8 @@ export class Character extends Model {
   }
 
   setEndAnimationWalk(forward = true) {
+    if (this.currentAnimation.name === 'Idle')
+      return;
     this.isMovingForward = false
     this.isMovingBackward = false;
     this.resetAllAnimationObjects();
