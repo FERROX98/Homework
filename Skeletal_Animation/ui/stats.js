@@ -147,6 +147,16 @@ export class Stats {
     if (keysElement) {
       keysElement.textContent = activeKeys;
     }
+    
+    const animationElement = document.getElementById('animation-info');
+    if (animationElement && state.currentAnimation) {
+      animationElement.textContent = state.currentAnimation;
+    }
+    
+    const animationSpeedElement = document.getElementById('animation-speed-info');
+    if (animationSpeedElement && state.animationSpeed) {
+      animationSpeedElement.textContent = state.animationSpeed;
+    }
 
     const cameraMode = state.cameraMode;
     let displayMode = '';
