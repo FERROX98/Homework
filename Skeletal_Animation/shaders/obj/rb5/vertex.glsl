@@ -27,12 +27,15 @@ void main() {
         normWeights * weights.z  * jointMatrices[int(joints.z)]+
         normWeights * weights.w  *jointMatrices[int(joints.w)];
 
+    // joint space 
     vec4 skinnedPosition = skinMatrix * vec4(position, 1.0);
 
     texCoords = textureCoords;
 
-    vFragPos = skinnedPosition.xyz;  
-    vNormal =   normalize(normalMatrix * normalize(skinMatrix* vec4( normal,0.0)).xyz); 
-    gl_Position = projection * view * model * skinnedPosition;  
+    vec4 vFragPosWorldSpace = model * skinnedPosition;
+    vec4 vFragPosViewSpace = view * vFragPosWorldSpace;
+    vFragPos = vFragPosViewSpace.xyz;  
+    vNormal = normalize(normalMatrix * normalize(skinMatrix * vec4(normal, 0.0)).xyz); 
+    gl_Position = projection * vFragPosViewSpace;  
 
 }
