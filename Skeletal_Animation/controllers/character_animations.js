@@ -1,15 +1,19 @@
+
+// waitBefore for the velocity
+// waitAfter for the animation/movement duration 
+
 export const walkAnimations = [ 
     { name: 'WalkRelaxedLoop', index: 3, next: null, waitBefore: 0, waitAfter: 0 },
     { name: 'WalkRevRelaxedLoop', index: 4, next: null, waitBefore: 0, waitAfter: 0  },
     { name: 'WalkLoop', index: 5, next: null, waitBefore: 0, waitAfter: 0  },
     { name: 'WalkRevLoop', index: 6, next: null, waitBefore: 0, waitAfter: 0  },
-    { name: 'WalkRelaxedStart', index: 10, next: 'WalkRelaxedLoop', waitBefore: 1000, waitAfter: 0  },
+    { name: 'WalkRelaxedStart', index: 10, next: 'WalkRelaxedLoop', waitBefore: 1000, waitAfter:500  },
     { name: 'WalkRevRelaxedStart', index: 4, next: 'WalkRevRelaxedLoop', waitBefore: 0, waitAfter: 0  },
     { name: 'WalkEnd', index: 12, next: 'Idle', waitBefore: 0, waitAfter: 500  },
-    { name: 'WalkRevEnd', index: 12, next: 'Idle', waitBefore: 0, waitAfter: 0  },
+    { name: 'WalkRevEnd', index: 12, next: 'Idle', waitBefore: 0, waitAfter: 500  },
     { name: 'Default', index: 18, next: 'Idle', waitBefore: 0, waitAfter: 0  },
     { name: 'Idle', index: 23, next: null },
-    { name: 'WalkRelaxedEnd', index: 26, next: 'Idle', waitBefore: 0, waitAfter: 2000  },
+    { name: 'WalkRelaxedEnd', index: 26, next: 'Idle', waitBefore: 200, waitAfter: 2400  },
     // TODO fix 
     { name: 'WalkRevRelaxedEnd', index: 12, next: 'Idle', waitBefore: 0, waitAfter: 0  },
     { name: 'WalkStart', index: 27, next: 'WalkLoop', waitBefore: 1000, waitAfter: 0  },
@@ -31,6 +35,7 @@ export const animations = [
 export class CharacterAnimations {
 
     static getAnimationByName(name) {
+        //console.log(`Getting animation by name: ${name}`);
         if (animations.some(animation => animation.name === name)) {
             return animations.find(animation => animation.name === name);
         } else { 
@@ -55,7 +60,7 @@ export class CharacterAnimations {
         //console.log(`Getting movement sensitivity for animation type: ${animationType}`);
         switch (animationType) {
             case 'relaxed':
-                return 0.9;
+                return 0.6;
             case 'normal':
                 return 1.0;
             default:
@@ -77,7 +82,7 @@ export class CharacterAnimations {
             case 'WalkRelaxedLoop':
                 return 1.0;
             case 'WalkRelaxedEnd':
-                return 0.9;
+                return 0.6;
             default:
                 return 1.0;
         }

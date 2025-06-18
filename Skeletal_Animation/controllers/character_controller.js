@@ -428,6 +428,8 @@ export class CharacterController {
       keys: { ...this.keys },
       cameraMode: this.camera.cameraMode,
       modelVisible: this.model.isVisible,
+      currentAnimation: this.model && this.model.currentAnimation ? this.model.currentAnimation.name : 'None',
+      animationSpeed: this.model ? this.model.getAnimationSpeed().toFixed(2) : '0.00',
     };
   }
 
