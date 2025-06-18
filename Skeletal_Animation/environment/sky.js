@@ -1,12 +1,15 @@
 import * as utils from '../shaders/shader_utils.js';
 import { BaseModel } from '../models/base_model.js';
+import { mat4 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
+import { Model } from '../models/model.js';
 
 
 export class GradientSky extends BaseModel {
   constructor(gl) {
     super(gl);
     this.name = 'sky';
-    this.isLoad = false;
+    this.isLoaded = false;
+    this.models = [];
 
     utils.resolveShaderPaths(this.name).then((shadersPath) => {
       // shader 
@@ -16,7 +19,7 @@ export class GradientSky extends BaseModel {
           console.log(`[${this.name}] shader initialized:`, program);
           this.program = program;
           this.initGeometry();
-          this.isLoad = true;
+          this.isLoaded = true;
         } else {
           console.error(`[${this.name}] shader init failed`);
         }
@@ -55,10 +58,9 @@ export class GradientSky extends BaseModel {
       gl.disable(gl.DEPTH_TEST);
 
       this.bindAndEnableBuffers(this.vertPos, this.vertexBuffer, 2);
-
+      
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
       gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0);
-
       gl.enable(gl.DEPTH_TEST);
 
       return this.indexCount / 3;
