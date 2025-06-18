@@ -23,13 +23,10 @@ void main() {
   vec3 baseColor = pow(texture2D(colorTex, texCoords).rgb, vec3(2.2));
   //  no SRGB 
   vec3 metalRough = texture2D(metalRoughTex, texCoords).rgb;
-  
-  // TODO compute tangent and bitangent to brign texture into view 
-  //vec3 normalMap =  texture2D(normalTex, texCoords).rgb* 2.0 - 1.0;
-  //vec3 normal = normalize(vNormal + normalMap * 0.4);
+
   vec3 to_light = normalize(lightPosition - vFragPos);
   float d = length(to_light);
-  float attenuation = 1.0 / (1.0+ 0.0019 * d + 0.0032 * d * d);
+  float attenuation = 1.0 / (1.0+ 0.0019 * d + 0.00032 * d * d);
 
   vec3 normal = normalize(vNormal);
   // GLTF standard PBR material
@@ -41,14 +38,14 @@ void main() {
   vec3 viewDir = normalize(-vFragPos);
   vec3 halfDir = normalize(dirLight + viewDir);
 
-  float cosTheta = max(dot(normal, dirLight), 0.1);
+  float cosTheta = max(dot(normal, dirLight), 0.2);
   
   // Diffuse term
   vec3 diffuseTerm =  baseColor.rgb * cosTheta; 
 
   float cosPhi =  max(0.0,dot(halfDir, normal));
 
-  float shininess =  8.0 * (1.0 - rough);
+  float shininess =  4.0 * (1.0 - rough);
   
   // metal indica quanto è metallo 
   // 0.04 per materiali non metallici

@@ -62,7 +62,7 @@ export class CharacterController {
       arrowright: false
     };
 
-    this.firstPersonHeightOffset = 16.0;
+    this.firstPersonHeightOffset = 14.6;
     this.thirdPersonHeightOffset = 10.0;
 
     this.camera.onFirstPersonRotationChange = (rotation) => {
@@ -210,8 +210,10 @@ export class CharacterController {
       const fpPosition = [0, 0, 0];
       vec3.copy(fpPosition, this.position);
       fpPosition[1] += this.firstPersonHeightOffset;
-
-      this.hideModel();
+      fpPosition[0] += Math.sin(this.rotation) * 3.0;
+      fpPosition[2] += Math.cos(this.rotation) * 3.0;
+      this.camera.fov = 75 * (Math.PI / 180); 
+      //this.hideModel();
       this.camera.setFirstPersonView(fpPosition, this.rotation);
 
     } else if (newMode === 'thirdPerson'
@@ -368,8 +370,9 @@ export class CharacterController {
       const fpPosition = vec3.create();
       vec3.copy(fpPosition, this.position);
       fpPosition[1] += this.firstPersonHeightOffset;
-
-      this.hideModel();
+      fpPosition[0] += Math.sin(this.rotation) * 3.0;
+      fpPosition[2] += Math.cos(this.rotation) * 3.0;
+      //this.hideModel();
 
       this.camera.updateFirstPersonPosition(fpPosition);
       this.camera.firstPersonRotation = this.rotation;
