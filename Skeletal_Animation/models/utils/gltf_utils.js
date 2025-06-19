@@ -83,11 +83,10 @@ export class GLTFUtils {
         const bufferViews = model.bufferViews;
         const bin = model.bin;
 
-        //  tells which bufferView contains the data in the bin file
+        //  tells which bufferView contains the pointer to the bin file
         const bufferViewsIndex = accessor.bufferView;
-        if (bufferViewsIndex === undefined) {
-            throw new Error(`[${accessor.name}] Accessor  does not have a bufferView`);
-        }
+        if (bufferViewsIndex === undefined) 
+            console.warn(`[${model.name}] ${accessor.name} no bufferView defined`);
 
         // Get the bufferView from the bufferViews array
         const bufferView = bufferViews[bufferViewsIndex];
@@ -117,7 +116,8 @@ export class GLTFUtils {
 
             // retrieve the array of all inverse bind matrices (one for each joint)
             const ibmArray = this.readArrayFromAccessor(ibmAccessor, model);
-            console.log(`[${model.name}] inverseBindMatrices count:`, ibmAccessor.count);
+            if (debug) console.log(`[${model.name}] inverseBindMatrices count:`, ibmAccessor.count);
+           
             for (let i = 0; i < ibmAccessor.count; i++) {
                 // 4x4 matrix for each joint
                 const matrixData = ibmArray.slice(i * 16, (i + 1) * 16);
@@ -143,7 +143,7 @@ export class GLTFUtils {
         const bin = model.bin;
 
         if (primitive.attributes[attr] === undefined)
-            return null;
+            return;
 
         const acc = accessors[primitive.attributes[attr]];
         const view = bufferViews[acc.bufferView];
@@ -159,21 +159,26 @@ export class GLTFUtils {
         const accessors = model.accessors;
         const json = model.json;
         const bin = model.bin;
+
         let primitivesCount = 1;
 
         // joint all scene 
-        // for all obj retrieve vertex and data (triangle) and store in the buffer
+        // for all obj (like cup of tea) retrieve vertex and data (triangle) and store in the buffer
         for (const primitive of allPrimitives) {
             if (debug) console.log(`[${model.name}] Processing primitive:`, primitivesCount++);
+
+            // vertex position 
             const position = this.getDataFromPrimitive('POSITION', model, primitive);
+
             const normal = this.getDataFromPrimitive('NORMAL', model, primitive);
             const texcoord = this.getDataFromPrimitive('TEXCOORD_0', model, primitive);
             let joints = this.getDataFromPrimitive('JOINTS_0', model, primitive);
             const weights = this.getDataFromPrimitive('WEIGHTS_0', model, primitive);
-
+            const tangent = this.getDataFromPrimitive('TANGENT', model, primitive);
+            //const bitangent = TextureUtils.computeBitangent(model, normal, tangent);
+            
             // Convert in order to avoid issues with gl1 (TODO check if with gl2 can be solved)
             if (joints && !(joints instanceof Float32Array)) {
-                //   console.warn(`[${model.name}] Converting joints from ${joints.constructor.name} to Float32Array`);
                 joints = new Float32Array(joints);
             }
 
@@ -190,7 +195,7 @@ export class GLTFUtils {
             const matIdx = primitive.material;
 
             if (matIdx === undefined) {
-                console.warn(`[${model.name}] Primitive has no material assigned, using default material`);
+                console.warn(`[${model.name}] No material, using default`);
             }
 
             const mat = json.materials[matIdx] || {};
@@ -200,42 +205,39 @@ export class GLTFUtils {
 
             const getTex = async (texInfo) => {
                 try {
+                    console.log(`[${model.name}] Loading texture:`, texInfo);
                     const tex = json.textures[texInfo.index];
                     const img = json.images[tex.source];
                     const uri = `models/assets/textures/${model.name}/` + img.uri;
-                    if (debug) console.log(`[${model.name}] Attempting to load texture: ${uri}`);
                     const texture = await TextureUtils.loadTextureImage(model, uri);
                     return texture;
                 } catch (error) {
                     console.warn(`[${model.name}] Failed to load texture:`, error.message);
-                    return null;
+                    return await TextureUtils.loadTextureImage(model, 'mock');
+
                 }
             };
 
             const textures = {
                 color: pbr.baseColorTexture ? await getTex(pbr.baseColorTexture) : null,
                 normal: mat.normalTexture ? await getTex(mat.normalTexture) : null,
-                metalRough: pbr.metallicRoughnessTexture ? await getTex(pbr.metallicRoughnessTexture) : null,
-                emission: mat.emissiveTexture ? await getTex(mat.emissiveTexture) : null,
+                metal: pbr.metallicRoughnessTexture ? await getTex(pbr.metallicRoughnessTexture) : null,
+                rough: pbr.rough ? await getTex(pbr.rough) : null,
+                ao: pbr.occlusionTexture ? await getTex(pbr.occlusionTexture) : null,
+                disp: pbr.displacementTexture ? await getTex(pbr.displacementTexture) : null
             };
 
-            if (debug)
-                console.log(`[${model.name}] Texture loading results for material ${matIdx}:`, {
-                    color: !!textures.color,
-                    normal: !!textures.normal,
-                    metalRough: !!textures.metalRough,
-                    emission: !!textures.emission
-                });
-
             model.buffersList.push({
-                position,
-                normal,
-                texcoord,
-                joints,
-                weights,
-                indices,
+                positions: position,
+                normals: normal,
+                texCoords: texcoord,
+                joints: joints,
+                weights: weights,
+                tangents: tangent,
+              //  bitangents: bitangent,
+                indices: indices,
                 indexCount: indexAcc.count,
-                textures,
+                textures: textures
             });
         }
     }

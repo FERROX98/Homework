@@ -8,12 +8,12 @@ varying vec2 texCoords;
 varying vec3 vFragPos;
 
 void main() {
-    vec4 world_space = model * vec4(position, 1.0);
+    vec4 worldPos = model * vec4(position, 1.0);
 
     // camera centered at origin 
-    vFragPos = vec3(view * world_space);
+    vFragPos = vec3(view * worldPos);
     
     texCoords = textureCoords;
     
-    gl_Position = projection * view * world_space;
+    gl_Position = projection * view * worldPos;
 } 

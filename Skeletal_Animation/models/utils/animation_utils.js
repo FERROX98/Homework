@@ -16,7 +16,6 @@ export class AnimationUtils {
     const values = track.values;
 
     if (!times || !values || times.length === 0 || values.length === 0) {
-      console.warn("Invalid track data for vec3 interpolation");
       return [0, 0, 0];
     }
 
@@ -68,7 +67,6 @@ export class AnimationUtils {
     const values = track.values;
 
     if (!times || !values || times.length === 0 || values.length === 0) {
-      console.warn("Invalid track data for quat interpolation");
       return [0, 0, 0, 1];
     }
 
@@ -227,13 +225,12 @@ export class AnimationUtils {
     model.animPreproc = animPreproc;
   }
 
+  // shader selected
   static updateJointMatrices(model) {
     let jointMatrices = model.jointMatrices;
-    const gl = model.gl;
-    gl.useProgram(model.program);
-
     if (!jointMatrices || jointMatrices.length === 0)
       return;
+    const gl = model.gl;
 
     const jointMatrixLoc = model.uniforms.jointMatrices;
 
@@ -242,6 +239,7 @@ export class AnimationUtils {
       for (let i = 0; i < model.jointMatrices.length; i++) {
         flatJointData.set(model.jointMatrices[i], i * 16);
       }
+      gl.useProgram(model.program);
       gl.uniformMatrix4fv(jointMatrixLoc, false, flatJointData);
     }
   }
@@ -257,19 +255,18 @@ export class AnimationUtils {
     if (model.animationLength > 0 && t >= model.animationLength) {
       const switched = model.switchAnimation();
       if (switched) {
-        if (debug) console.warn(`[${model.name}] Animation completed ${model.currentAnimation.name} a full cycle, switching to next animation. ${t}`);
+        if (debug) console.warn(`[${model.name}] Animation completed ${model.currentAnimation.name} switching to next animation. ${t}`);
+        
         let now = performance.now();
-
         let elapsedSeconds = (now - model.startTime) / 1000;
         let animTime = elapsedSeconds * model.getAnimationSpeed();
-
         t = animTime;
-        if (debug) console.warn(`[${this.name}] Animation time reset to: ${t.toFixed(2)}s`);
       }
     }
 
     t = t % model.animationLength
     model.currentAnimationTime = t;
+
     const localTransforms = model.jointNodes.map(() => mat4.create());
     const jointWorld = model.jointNodes.map(() => mat4.create());
 
@@ -284,8 +281,6 @@ export class AnimationUtils {
         if (debug) console.warn(`[${model.name}] No animation track found for node (bone) ${nodeIndex}`);
         continue;
       }
-
-      // console.log(`[${model.name}] track for node ${nodeIndex}:`, track);
 
       // interpolate
       const translation = track.translation
@@ -304,7 +299,7 @@ export class AnimationUtils {
       const T = mat4.create();
       const R = mat4.create();
       const S = mat4.create();
-
+      // SRT * V
       mat4.fromTranslation(T, translation);
       mat4.fromQuat(R, rotation);
       mat4.fromScaling(S, scale);
@@ -313,6 +308,7 @@ export class AnimationUtils {
       mat4.multiply(TR, T, R);
 
       // [pseudo] localMatrix
+      // M = T * R * S
       mat4.multiply(localTransforms[i], TR, S);
 
       const parent = model.nodeParents[model.jointNodes[i]];

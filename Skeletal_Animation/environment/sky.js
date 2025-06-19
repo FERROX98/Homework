@@ -50,11 +50,11 @@ export class GradientSky extends BaseModel {
     }
 
     render() {
-      if (!this.isLoad) return;
+      if (!this.isLoaded) return;
 
       const gl = this.gl;
       gl.useProgram(this.program);
-
+      // Z rasterization
       gl.disable(gl.DEPTH_TEST);
 
       this.bindAndEnableBuffers(this.vertPos, this.vertexBuffer, 2);

@@ -7,7 +7,7 @@ import { Character } from '../models/character.js';
 
 const debug = false; 
 export class Environment {
-  constructor(gl, groundSize = 100) {
+  constructor(gl, groundSize = 150) {
     this.gl = gl;
 
     this.ground = null;
@@ -23,14 +23,12 @@ export class Environment {
     this.onModelsUpdated = null;
 
     this.modelTransforms = new Map();
-
-
     
     this.dirLightColor = [1.0, 0.95, 0.8, 1.0];
     this.dirLightIntensity = 1.0;
  
     this.ambientLight = [0.4, 0.42, 0.45, 1.0];
-    this.ambientIntensity = 0.14;
+    this.ambientIntensity = 0.3;
     
     // sun - ground   
     this.sunPosition = vec3.fromValues(-35, 110.0, 5.0); 
@@ -44,7 +42,7 @@ export class Environment {
   } 
 
   init() {
-    this.ground = new Ground(this.gl, 100);
+    this.ground = new Ground(this.gl, this.groundSize);
     console.log('Ground initialized');
     
     this.wall = new Wall(this.gl, this.groundSize);
@@ -105,13 +103,13 @@ export class Environment {
       lightPosition: this.sunPosition
     };
 
-    if (this.sky)
-      trianglesCount += this.sky.render();
+    if (this.sky && this.sky.isLoaded)
+      trianglesCount += this.sky.render(proj, view, lights);
     
-    if (this.ground)
+    if (this.ground && this.ground.isLoaded)
       trianglesCount += this.ground.render(proj, view, lights);
     
-    if (this.wall)
+    if (this.wall && this.wall.isLoaded)
       trianglesCount += this.wall.render(proj, view, lights);
  
     for (const [model, transform] of this.modelTransforms) {
@@ -133,8 +131,8 @@ export class Environment {
     
     this.dirLightColor = [
       1.0 * this.dirLightIntensity,
-      0.9 * this.dirLightIntensity, 
-      0.7 * this.dirLightIntensity, 
+      0.95 * this.dirLightIntensity, 
+      0.85 * this.dirLightIntensity, 
       1.0
     ];
   }
@@ -154,8 +152,6 @@ export class Environment {
         [this.sunScale, this.sunScale, this.sunScale]
       );
     }    
-
-    console.log(`Sun position set to: [${x}, ${y}, ${z}]`);
   }
 
   loadSun() {

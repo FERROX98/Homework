@@ -25,8 +25,8 @@ export class Main {
       // initialize env 
       let env = new Environment(gl);
 
-      // let manson = new Model(gl, "mansion_low.gltf");
-      // env.addModel(manson, [0, 13.5, 0], [0, 0, 0], [20, 20, 20]);
+    //  let manson = new Model(gl, "tmp/mansion_low.gltf", false, true);
+    // env.addModel(manson, [0, 13.5, 0], [0, 0, 0], [20, 20, 20]);
 
       // let earthModel = new Model(gl, "earth.gltf");
       // env.addModel(earthModel,  [270, 179, -10],[0, 0, 0], [33, 33, 33]); 
@@ -66,7 +66,7 @@ export class Main {
   }
 
   setupCharacterController(model, renderer, env) {
-    if (!model || model.isLoaded) {
+    if (!model || model.isLoaded ) {
       console.log(`Setting up character controller ${model.name}`);
 
       const characterController = new CharacterController(model, env, renderer.camera);
