@@ -22,14 +22,12 @@ void main() {
     vec3 viewPos = vec3(view * worldPos);
 
     // from model to view space
-    vec3 N = normalize(mat3(normalMatrix) * normal);
-    vec3 T = normalize(mat3(normalMatrix) * tangent);
+    vec3 N = normalize(normalMatrix * normal);
+    vec3 T = normalize(normalMatrix * tangent);
     
-    // Ortogonalizzazione
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
     
-    // Trasposta
     mat3 TBN = mat3(
         vec3(T.x, B.x, N.x),
         vec3(T.y, B.y, N.y),

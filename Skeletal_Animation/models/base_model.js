@@ -55,12 +55,12 @@ export class BaseModel {
         gl.uniformMatrix4fv(uniforms.view, false, view);
         gl.uniformMatrix4fv(uniforms.model, false, modelMatrix);
         
-        // from world to view space
-        const lightDirWorldSpace = vec4.fromValues(lights.dirLightDir[0], lights.dirLightDir[1],
-                        lights.dirLightDir[2], 0.0);
-        const lightDirViewSpace = lightDirWorldSpace;
-        vec4.transformMat4(lightDirViewSpace, lightDirViewSpace, view);
-        vec4.normalize(lightDirViewSpace, lightDirViewSpace);
+         // from world to view space NO USED 
+        // const lightDirWorldSpace = vec4.fromValues(lights.dirLightDir[0], lights.dirLightDir[1],
+        //                 lights.dirLightDir[2], 0.0);
+        // const lightDirViewSpace = lightDirWorldSpace;
+        // vec4.transformMat4(lightDirViewSpace, lightDirViewSpace, view);
+        // vec4.normalize(lightDirViewSpace, lightDirViewSpace);
 
         // from world to view space
         const lightPosition = lights.lightPosition;
@@ -70,9 +70,9 @@ export class BaseModel {
         
         // fragment uniforms
         // not used
-        gl.uniform4fv(uniforms.dirLightDir, lightDirViewSpace);
-       
-        gl.uniform4fv(uniforms.dirLightColor, lights.dirLightColor);
+        // gl.uniform4fv(uniforms.dirLightDir, lightDirViewSpace);
+        
+        gl.uniform4fv(uniforms.pointLightColor, lights.pointLightColor);
         gl.uniform4fv(uniforms.ambientLight, lights.ambientLight);
         gl.uniform1f(uniforms.ambientIntensity, lights.ambientIntensity);
         gl.uniform3fv(uniforms.lightPosition, vec3.fromValues(lightPositionViewSpace[0], lightPositionViewSpace[1], lightPositionViewSpace[2]));
@@ -144,7 +144,7 @@ export class BaseModel {
           ambientLight: gl.getUniformLocation(program, 'ambientLight'),
           ambientIntensity: gl.getUniformLocation(program, 'ambientIntensity'),
           dirLightDir: gl.getUniformLocation(program, 'dirLightDir'),
-          dirLightColor: gl.getUniformLocation(program, 'dirLightColor'),
+          pointLightColor: gl.getUniformLocation(program, 'pointLightColor'),
           lightPosition: gl.getUniformLocation(program, 'lightPosition'),
           pointLightCount: gl.getUniformLocation(program, 'pointLightCount'),
 

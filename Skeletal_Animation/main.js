@@ -31,7 +31,7 @@ export class Main {
       // let earthModel = new Model(gl, "earth.gltf");
       // env.addModel(earthModel,  [270, 179, -10],[0, 0, 0], [33, 33, 33]); 
 
-      let rb1 = new Character(gl, "rb5.gltf", true);
+      let rb1 = new Character(gl, "rb5.gltf", true, true , true);
       let renderer = new Render.Renderer(gl, canvas, env);
 
       self.setupCharacterController(rb1, renderer, env);

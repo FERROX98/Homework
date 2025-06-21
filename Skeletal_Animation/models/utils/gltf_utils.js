@@ -195,14 +195,9 @@ export class GLTFUtils {
 
             // retrieve texture data
             const matIdx = primitive.material;
-
-            if (matIdx === undefined) {
-                console.warn(`[${model.name}] No material, using default`);
-            }
-            
             const basePath = `models/assets/textures/${model.name}/`;
             const textures = model.loadTexFromGlTF ?
-                            await TextureUtils.getTexturesFromGltf(model, json) : await TextureUtils.loadTextures(model, basePath);
+                            await TextureUtils.getTexturesFromGltf(model, json, matIdx) : await TextureUtils.loadTextures(model, basePath);
 
             model.buffersList.push({
                 positions: position,

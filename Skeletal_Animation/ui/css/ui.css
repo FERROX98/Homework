@@ -1,11 +1,11 @@
-/* Base styles */
+
 html, body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
 }
 
-/* UI Panel */
+
 #ui-panel {
   position: absolute;
   top: 10px;
@@ -49,7 +49,6 @@ html, body {
   background: rgba(0, 120, 255, 1);
 }
 
-/* Stats Container */
 #stats-container {
   position: fixed;
   top: 10px;
@@ -135,7 +134,6 @@ html, body {
   color: #ff4444;
 }
 
-/* Camera Controls Panel */
 #camera-controls-panel {
   position: fixed;
   top: 20px;
@@ -195,7 +193,7 @@ html, body {
   color: #4CAF50;
 }
 
-/* Form Controls */
+
 input[type="range"] {
   width: 100%;
   margin: 10px 0;
@@ -258,7 +256,7 @@ input[type="range"]::-moz-range-thumb {
   color: #ccc;
 }
 
-/* Light Controls */
+
 .light-control-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -272,7 +270,7 @@ input[type="range"]::-moz-range-thumb {
   margin-top: 5px;
 }
 
-/* Objects List */
+
 .objects-list-container {
   max-height: 200px;
   overflow-y: auto;
@@ -293,7 +291,7 @@ input[type="range"]::-moz-range-thumb {
   font-size: 12px;
 }
 
-/* Animation Selector */
+
 #animation-selector-overlay {
   position: fixed;
   top: 0;
@@ -411,7 +409,7 @@ input[type="range"]::-moz-range-thumb {
   display: none;
 }
 
-/* Checkbox styles */
+
 .checkbox-container {
   display: block;
   position: relative;

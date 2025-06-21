@@ -43,15 +43,17 @@ void main() {
     // from world to view space
     vec3 vFragPosViewSpace = vec3(view * vFragPosWorldSpace);
 
-    // from local to view space
-    vec3 N = normalize(normalMatrix * normal);
-    vec3 T = normalize(normalMatrix * tangent);
+    // from local to joint space
+    vec4 skinnedNormal = normalize(skinMatrix * vec4(normal, 0.0));
+    vec4 skinnedTangent = normalize(skinMatrix * vec4(tangent, 0.0));
+
+    // from joint to view space
+    vec3 N = normalize(normalMatrix * vec3(skinnedNormal));
+    vec3 T = normalize(normalMatrix *vec3(skinnedTangent));
     
-    // Ortogonalizzazione
     T = normalize(T - dot(T, N) * N);
-    vec3 B = cross(N, T);
+    vec3 B = normalize(cross(N, T));
     
-    // Trasposta
     mat3 TBN = mat3(
         vec3(T.x, B.x, N.x),
         vec3(T.y, B.y, N.y),

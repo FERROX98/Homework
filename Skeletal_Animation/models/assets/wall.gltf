@@ -18,30 +18,26 @@
 			"name":"Cube"
 		}
 	],
-	"materials":[
-		{
-			"doubleSided":true,
-			"name":"Material",
-			"normalTexture":{
-				"index":0
-			},
-			"pbrMetallicRoughness":{
-				"baseColorTexture":{
-					"index":1
-				},"metallicRoughnessTexture":{
-					"index":2
-				},"rough":{
-					"index":3
-				},"occlusionTexture": {
-					"index":4
-				},"displacementTexture": {
-					"index":5
-				},
-				"metallicFactor":0,
-				"roughnessFactor":0.5
-			}
-		}
-	],
+	"materials":  [
+  {
+    "doubleSided": true,
+    "name": "Material",
+    "normalTexture": { "index": 0 },
+    "occlusionTexture": { "index": 4 },
+    "extensions": {
+      "KHR_materials_displacement": {
+        "displacementTexture": { "index": 5 },
+        "displacementScale": 0.05
+      }
+    },
+    "pbrMetallicRoughness": {
+      "baseColorTexture": { "index": 1 },
+      "metallicRoughnessTexture": { "index": 2 },
+      "metallicFactor": 1.0,
+      "roughnessFactor": 1.0
+    }
+  }
+],
 	"meshes":[
 		{
 			"name":"Cube",
@@ -59,63 +55,22 @@
 			]
 		}
 	],
-	"textures":[
-		{
-			"sampler":0,
-			"source":0
-		},
-		{
-			"sampler":0,
-			"source":1
-		}, 
-		{
-			"sampler":0,
-			"source":2
-		},
-		{
-			"sampler":0,
-			"source":3
-		},
-		{
-			"sampler":0,
-			"source":4
-		},
-		{
-			"sampler":0,
-			"source":5
-		}
-	],
-	"images":[
-		{
-			"mimeType":"image/jpeg",
-			"name":"nor",
-			"uri":"nor.jpg"
-		},
-		{
-			"mimeType":"image/jpeg",
-			"name":"diff",
-			"uri":"diff.jpg"
-		},	{
-			"mimeType":"image/jpeg",
-			"name":"metal",
-			"uri":"met.jpg"
-		},
-			{
-			"mimeType":"image/jpeg",
-			"name":"rough",
-			"uri":"rough.jpg"
-		},
-		{
-			"mimeType":"image/jpeg",
-			"name":"ao",
-			"uri":"ao.jpg"
-		},{
-			"mimeType":"image/jpeg",
-			"name":"disp",
-			"uri":"disp.jpg"
-		}
-	
-	],
+"textures": [
+  { "sampler": 0, "source": 0 },
+  { "sampler": 0, "source": 1 },
+  { "sampler": 0, "source": 2 },
+  { "sampler": 0, "source": 3 },
+  { "sampler": 0, "source": 4 },
+  { "sampler": 0, "source": 5 }
+],
+	"images": [
+  { "mimeType": "image/jpeg", "name": "nor",   "uri": "nor.jpg"   },
+  { "mimeType": "image/jpeg", "name": "diff",  "uri": "diff.jpg"  },
+  { "mimeType": "image/jpeg", "name": "metal", "uri": "met.jpg"   },
+  { "mimeType": "image/jpeg", "name": "rough", "uri": "rough.jpg" },
+  { "mimeType": "image/jpeg", "name": "ao",    "uri": "ao.jpg"    },
+  { "mimeType": "image/jpeg", "name": "disp",  "uri": "disp.jpg"  }
+],
 	"accessors":[
 		{
 			"bufferView":0,

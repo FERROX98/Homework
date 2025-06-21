@@ -25,13 +25,13 @@ export class CameraControls {
 
     this.walkAnimationSelector = document.getElementById("walk-animation-selector");
 
-    // Sun 
-    this.sunXSlider = document.getElementById("sun-x-slider");
-    this.sunXValue = document.getElementById("sun-x-value");
-    this.sunYSlider = document.getElementById("sun-y-slider");
-    this.sunYValue = document.getElementById("sun-y-value");
-    this.sunZSlider = document.getElementById("sun-z-slider");
-    this.sunZValue = document.getElementById("sun-z-value");
+    // light 
+    this.lightXSlider = document.getElementById("light-x-slider");
+    this.lightXValue = document.getElementById("light-x-value");
+    this.lightYSlider = document.getElementById("light-y-slider");
+    this.lightYValue = document.getElementById("light-y-value");
+    this.lightZSlider = document.getElementById("light-z-slider");
+    this.lightZValue = document.getElementById("light-z-value");
 
     // Light
     this.lightIntensitySlider = document.getElementById("light-intensity-slider");
@@ -101,23 +101,23 @@ export class CameraControls {
       this.updateWalkAnimationType(animationType);
     });
 
-    // Sun
-    this.sunXSlider.addEventListener('input', (e) => {
+    // light
+    this.lightXSlider.addEventListener('input', (e) => {
       const x = parseFloat(e.target.value);
-      this.sunXValue.textContent = x;
-      this.updateSunPosition();
+      this.lightXValue.textContent = x;
+      this.updatePointLightPosition();
     });
 
-    this.sunYSlider.addEventListener('input', (e) => {
+    this.lightYSlider.addEventListener('input', (e) => {
       const y = parseFloat(e.target.value);
-      this.sunYValue.textContent = y;
-      this.updateSunPosition();
+      this.lightYValue.textContent = y;
+      this.updatePointLightPosition();
     });
 
-    this.sunZSlider.addEventListener('input', (e) => {
+    this.lightZSlider.addEventListener('input', (e) => {
       const z = parseFloat(e.target.value);
-      this.sunZValue.textContent = z;
-      this.updateSunPosition();
+      this.lightZValue.textContent = z;
+      this.updatePointLightPosition();
     });
 
     this.lightIntensitySlider.addEventListener('input', (e) => {
@@ -161,19 +161,19 @@ export class CameraControls {
     this.rotationSpeedSlider.value = displayRotationSpeed;
     this.rotationSpeedValue.textContent = displayRotationSpeed.toFixed(2);
 
-    // sun
-    const sunPosition = this.environment.sunPosition;
-    this.sunXSlider.value = sunPosition[0].toFixed(2);
-    this.sunXValue.textContent = this.sunXSlider.value;
-    this.sunYSlider.value = sunPosition[1].toFixed(2);
-    this.sunYValue.textContent = this.sunYSlider.value;
-    this.sunZSlider.value = sunPosition[2].toFixed(2);
-    this.sunZValue.textContent = this.sunZSlider.value;
+    // light
+    const lightPosition = this.environment.lightPosition;
+    this.lightXSlider.value = lightPosition[0].toFixed(2);
+    this.lightXValue.textContent = this.lightXSlider.value;
+    this.lightYSlider.value = lightPosition[1].toFixed(2);
+    this.lightYValue.textContent = this.lightYSlider.value;
+    this.lightZSlider.value = lightPosition[2].toFixed(2);
+    this.lightZValue.textContent = this.lightZSlider.value;
 
     // light intensity
     this.lightIntensitySlider.value = this.environment.dirLightIntensity.toFixed(1);
     this.lightIntensityValue.textContent = this.lightIntensitySlider.value;
-    this.lightingStatus.textContent = `Sun: [${sunPosition[0].toFixed(2)}, ${sunPosition[1].toFixed(2)}, ${sunPosition[2].toFixed(2)}] - Light intensity: ${this.environment.dirLightIntensity.toFixed(1)}`;
+    this.lightingStatus.textContent = `Light: [${lightPosition[0].toFixed(2)}, ${lightPosition[1].toFixed(2)}, ${lightPosition[2].toFixed(2)}] - Light intensity: ${this.environment.dirLightIntensity.toFixed(1)}`;
   }
 
   resetToDefaults() {
@@ -190,9 +190,9 @@ export class CameraControls {
       }
     }
 
-    // Sun
+    // Light
     if (this.environment) {
-      this.environment.resetSunPosition();
+      this.environment.resetLightPosition();
       this.environment.setDirectionalLightIntensity(1.0);
     }
 
@@ -283,24 +283,24 @@ export class CameraControls {
 
     this.environment.setDirectionalLightIntensity(intensity);
 
-    const x = parseFloat(this.sunXSlider.value);
-    const y = parseFloat(this.sunYSlider.value);
-    const z = parseFloat(this.sunZSlider.value);
+    const x = parseFloat(this.lightXSlider.value);
+    const y = parseFloat(this.lightYSlider.value);
+    const z = parseFloat(this.lightZSlider.value);
 
-    this.lightingStatus.textContent = `Sun: [${x}, ${y}, ${z}] - Light intensity: ${intensity.toFixed(1)}`;
+    this.lightingStatus.textContent = `Light: [${x}, ${y}, ${z}] - Light intensity: ${intensity.toFixed(1)}`;
   }
 
-  updateSunPosition() {
+  updatePointLightPosition() {
     if (!this.environment) return;
 
-    const x = parseFloat(this.sunXSlider.value);
-    const y = parseFloat(this.sunYSlider.value);
-    const z = parseFloat(this.sunZSlider.value);
+    const x = parseFloat(this.lightXSlider.value);
+    const y = parseFloat(this.lightYSlider.value);
+    const z = parseFloat(this.lightZSlider.value);
 
-    this.environment.setSunPosition(x, y, z);
+    this.environment.setLightPosition(x, y, z);
 
     const intensity = this.lightIntensitySlider ? parseFloat(this.lightIntensitySlider.value) : 1.0;
-    this.lightingStatus.textContent = `Sun: [${x}, ${y}, ${z}] - Light intensity: ${intensity.toFixed(1)}`;
+    this.lightingStatus.textContent = `Light: [${x}, ${y}, ${z}] - Light intensity: ${intensity.toFixed(1)}`;
   }
 
   updateFOV(fov) {

@@ -10,12 +10,13 @@ const debug = false;
 
 export class Model extends BaseModel {
 
-  constructor(gl, modelPath, animated = false, visible = true) {
+  constructor(gl, modelPath, animated = false, visible = true, loadTexFromGlTF = false) {
     super(gl);
     this.modelPath = modelPath;
     this.name = modelPath.split('/').pop().split('.')[0];
     this.isVisible = visible;
     this.texturesLoaded = false;
+    this.loadTexFromGlTF = loadTexFromGlTF;
 
     this.program = null;
     this.isLoaded = false;

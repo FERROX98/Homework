@@ -16,8 +16,8 @@ export class CharacterController {
 
     // animation obj
     if (this.model) {
-      this.chair = new Model(this.model.gl, "chair.gltf", false, false);
-      environment.addModel(this.chair);
+      this.chair = new Model(this.model.gl, "chesterfieldarmchair.gltf", false, false, true);
+      environment.addModel(this.chair, [0, 0, 0], [0, 0, 0], [10.4, 10, 10.4]);
       model.chair = this.chair;
     }
 
@@ -209,7 +209,7 @@ export class CharacterController {
 
         if ((isForward || isBackward) && timeBeforeEnd > 0) {
           
-          console.log(`Waiting ${timeBeforeEnd}ms before stopping movement`);
+          console.log(`Waiting ${timeBeforeEnd}ms before stopping move`);
           this.timerWalk = setTimeout(() => {
             this.keys[key] = false;
             this.isMoving = false;
@@ -445,15 +445,24 @@ export class CharacterController {
 
     
     if (animationName === 'StandToSit') {
-      const offset = 7.3;
-      const behindX = this.position[0] - Math.sin(this.rotation) * offset;
-      const behindZ = this.position[2] - Math.cos(this.rotation) * offset;
+      const offset = 6.1;
+
+      const offsetRotation = 0
+      // yaw 
+      const behindX = this.position[0] - Math.sin(this.rotation) * (offset);
+      const behindZ = this.position[2] - Math.cos(this.rotation) * (offset);
+      
+      const rightOffset = 1.0;        
+      // traslo verso destra ruoto yaw di 90 gradi in senso orario 
+      // per piccolo aggiustamento 
+      const rightX =  Math.cos(this.rotation) * rightOffset;
+      const rightZ = -Math.sin(this.rotation) * rightOffset;
 
       this.environment.updateModelTransform(
         this.chair,
-        [behindX, 4.8, behindZ],
-        [0, this.rotation + 30, 0],
-        [1.4, 1.47, 1.4]
+        [behindX +rightX , 0, behindZ + rightZ],
+        [0, this.rotation + offsetRotation, 0],
+        [10.4, 10, 10.4]
       );
 
       this.chair.isVisible = true;

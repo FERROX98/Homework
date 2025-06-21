@@ -1,41 +1,38 @@
 
-// waitBefore for the velocity
-// waitAfter for the animation/movement duration 
+// waitBefore for the velocity (wait before to move to max velocity)
+// waitAfter for the animation/movement duration (wait after keyup to stop movement)
 
-export const walkAnimations = [ 
-    { name: 'WalkRelaxedLoop', index: 3, next: null, waitBefore: 0, waitAfter: 0 },
-    { name: 'WalkRevRelaxedLoop', index: 4, next: null, waitBefore: 0, waitAfter: 0  },
-    { name: 'WalkLoop', index: 5, next: null, waitBefore: 0, waitAfter: 0  },
-    { name: 'WalkRevLoop', index: 6, next: null, waitBefore: 0, waitAfter: 0  },
-    { name: 'WalkRelaxedStart', index: 10, next: 'WalkRelaxedLoop', waitBefore: 1000, waitAfter:500  },
-    { name: 'WalkRevRelaxedStart', index: 4, next: 'WalkRevRelaxedLoop', waitBefore: 0, waitAfter: 0  },
-    { name: 'WalkEnd', index: 12, next: 'Idle', waitBefore: 0, waitAfter: 500  },
-    { name: 'WalkRevEnd', index: 12, next: 'Idle', waitBefore: 0, waitAfter: 500  },
-    { name: 'Default', index: 18, next: 'Idle', waitBefore: 0, waitAfter: 0  },
-    { name: 'Idle', index: 23, next: null },
-    { name: 'WalkRelaxedEnd', index: 26, next: 'Idle', waitBefore: 200, waitAfter: 2400  },
-    // TODO fix 
-    { name: 'WalkRevRelaxedEnd', index: 12, next: 'Idle', waitBefore: 0, waitAfter: 0  },
-    { name: 'WalkStart', index: 27, next: 'WalkLoop', waitBefore: 1000, waitAfter: 0  },
-    { name: 'WalkRevStart', index: 6, next: 'WalkRevLoop', waitBefore: 0, waitAfter: 0  },
+export const walkAnimations = [
+    { name: 'WalkRelaxedEnd', index: 2, next: 'Idle', waitBefore: 0, waitAfter: 2000    , show: true },
+    { name: 'WalkRelaxedLoop', index: 3, next: null, waitBefore: 0, waitAfter: 0, show: true },
+    { name: 'WalkRevRelaxedLoop', index: 5, next: null, waitBefore: 1000, waitAfter: 0, show: true },
+    { name: 'WalkRevRelaxedStart', index: 6, next: 'WalkRevRelaxedLoop', waitBefore: 5000, waitAfter: 0, show: true },
+    { name: 'WalkLoop', index: 7, next: null, waitBefore: 0, waitAfter: 0, show: true },
+    { name: 'WalkRevLoop', index: 8, next: null, waitBefore: 0, waitAfter: 0, show: true },
+    { name: 'WalkRevRelaxedEnd', index: 11, next: 'Idle', waitBefore: 0, waitAfter: 6000, show: true },
+    { name: 'WalkRelaxedStart', index: 12, next: 'WalkRelaxedLoop', waitBefore: 1000, waitAfter: 0, show: true },
+    { name: 'WalkEnd', index: 13, next: 'Idle', waitBefore: 0, waitAfter: 500, show: true },
+    { name: 'WalkRevStart', index: 15, next: 'WalkRevLoop', waitBefore: 1000, waitAfter: 0, show: true },
+    { name: 'Idle', index: 22, next: null, waitBefore: 0, waitAfter: 0, show: true },
+    { name: 'WalkRevEnd', index: 26, next: 'Idle', waitBefore: 0, waitAfter: 500, show: true },
+    { name: 'WalkStart', index: 27, next: 'WalkLoop', waitBefore: 1000, waitAfter: 0, show: true },
 ];
- 
+
 export const animations = [
-    { show: true, name: 'Shoot', description: 'Side shoot', icon: '🎯', index: 0, next: 'Idle', waitBefore: 0, waitAfter: 0  },
-    { show: true, name: 'DrawGun', description: 'Draw gun from back', icon: '🔫', index: 7, next: 'Idle' , waitBefore: 0, waitAfter: 0 },
-    { show: true, name: 'CoolShoot', description: 'Cool dual gun shoot', icon: '👉', index: 13, next: 'Idle', waitBefore: 0, waitAfter: 0  },
-    { show: true, name: 'GunShoot', description: 'Gun shooting', icon: '🔫', index: 14, next: 'Idle', waitBefore: 0, waitAfter: 0  },
-    { show: true, name: 'Dance', description: 'Aerobic dance', icon: '💃', index: 16, next: 'Idle', waitBefore: 0, waitAfter: 0  },
-    { show: true, name: 'BreakDoor', description: 'Break door', icon: '🚪', index: 19, next: 'Idle', waitBefore: 0, waitAfter: 0  },
-    { show: true, name: 'StandToSit', description: 'Stand to sit', icon: '🪑', index: 24, next: 'StandToSitRev', waitBefore: 0, waitAfter: 1000  },
-    { show: false, name: 'StandToSitRev', description: 'Stand to sit (reverse)', icon: '🪑', index: 25, next: 'Idle', waitBefore: 0, waitAfter: 0  },
+    { name: 'Shoot',  icon: '🎯', index: 0, next: 'Idle', 'waitBefore': 0, 'waitAfter': 0, 'show': true },
+    { name: 'DrawGun', icon: '🔫', index: 9, next: 'Idle', 'waitBefore': 0, 'waitAfter': 0, 'show': true },
+    { name: 'CoolShoot', icon: '👉', index: 16, next: 'Idle', 'waitBefore': 0, 'waitAfter': 0, 'show': true },
+    { name: 'GunShoot', icon: '🔫', index: 17, next: 'Idle', 'waitBefore': 0, 'waitAfter': 0, 'show': true },
+    { name: 'Dance', icon: '💃', index: 18, next: 'Idle', 'waitBefore': 0, 'waitAfter': 0, 'show': true },
+    { name: 'BreakDoor', icon: '🚪', index: 20, next: 'Idle', 'waitBefore': 0, 'waitAfter': 0, 'show': true },
+    { name: 'StandToSit', icon: '🪑', index: 23, next: 'StandToSitRev', 'waitBefore': 0, 'waitAfter': 1000, 'show': true },
+    { name: 'StandToSitRev', icon: '🪑', index: 24, next: 'Idle', 'waitBefore': 0, 'waitAfter': 0, 'show': false },
 ];
-
 
 export class CharacterAnimations {
 
     static getAnimationByName(name) {
-        //console.log(`Getting animation by name: ${name}`);
+        console.log(`Getting animation by name: ${name}`);
         if (animations.some(animation => animation.name === name)) {
             return animations.find(animation => animation.name === name);
         } else { 
@@ -111,8 +108,8 @@ export class CharacterAnimations {
                 start: 'WalkRelaxedStart',
                 loop: 'WalkRelaxedLoop', 
                 end: 'WalkRelaxedEnd',
-                revStart: 'WalkRevRelaxedLoop',
-                revLoop: 'WalkRevLoop',
+                revStart: 'WalkRevRelaxedStart',
+                revLoop: 'WalkRevRelaxedLoop',
                 revEnd: 'WalkRevRelaxedEnd'
                 };
             case 'normal':

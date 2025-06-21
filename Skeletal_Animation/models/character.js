@@ -4,9 +4,9 @@ import { CharacterAnimations } from '../controllers/character_animations.js';
 const debug = false;
 
 export class Character extends Model {
-  constructor(gl, modelPath, animated = false, visible = true) {
+  constructor(gl, modelPath, animated = false, visible = true, loadTexFromGlT= false) {
 
-    super(gl, modelPath, animated, visible);
+    super(gl, modelPath, animated, visible, loadTexFromGlT);
         
 
     this.currentAnimation = null;

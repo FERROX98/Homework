@@ -95,7 +95,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 
 void main() {
 
-  vec3 viewDir = vec3(TangentViewPos - TangentFragPos);
+  vec3 viewDir = normalize(vec3(TangentViewPos - TangentFragPos));
   vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
 
   vec2 texCoordsDisp = ParallaxMapping(texCoords, viewDir);
@@ -104,14 +104,13 @@ void main() {
     return;
   }
 
-  vec3 albedo;
+  vec3 albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
   vec3 normalMap;
   float metallic;
   float roughness;
   float ao = 1.0;
 
   // from RGBs to linear space
-  albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
   normalMap = texture2D(normalTex, texCoordsDisp).rgb;
   metallic = texture2D(metallicMap, texCoordsDisp).r;
   roughness = texture2D(roughnessMap, texCoordsDisp).r;

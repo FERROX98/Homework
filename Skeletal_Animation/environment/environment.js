@@ -17,25 +17,27 @@ export class Environment {
     this.wall = null;
     this.sky = null; 
 
-    this.sun = null; 
-    this.sunScale = 5;
+    this.pointLight = null; 
+    this.lightScale = 5;
 
     this.onModelsUpdated = null;
 
     this.modelTransforms = new Map();
     
-    this.dirLightColor = [1.0, 0.95, 0.8, 1.0];
+    this.pointLightColor = [1.0, 0.95, 0.8, 1.0];
     this.dirLightIntensity = 1.0;
  
     this.ambientLight = [0.4, 0.42, 0.45, 1.0];
     this.ambientIntensity = 0.3;
     
-    // sun - ground   
-    this.sunPosition = vec3.fromValues(-35, 110.0, 5.0); 
-    this.baseSunPosition = this.sunPosition.slice(); 
+    // light - ground   
+    this.lightPosition = vec3.fromValues(-35, 110.0, 5.0); 
+    this.baselightPosition = this.lightPosition.slice(); 
+    
+    // no used 
     this.dirLightDir = vec3.create();
 
-    this.setSunPosition(this.sunPosition[0], this.sunPosition[1], this.sunPosition[2]);  
+    this.setLightPosition(this.lightPosition[0], this.lightPosition[1], this.lightPosition[2]);  
 
     this.updateLightDirection();
     this.init();
@@ -51,7 +53,7 @@ export class Environment {
     this.sky = new GradientSky(this.gl);
     console.log('Sky initialized');
     
-    this.loadSun();
+    this.loadPointLight();
     
     console.log('Environment initialization complete');
   }
@@ -97,10 +99,10 @@ export class Environment {
 
     let lights = {
       dirLightDir: this.dirLightDir,
-      dirLightColor: this.dirLightColor,
+      pointLightColor: this.pointLightColor,
       ambientLight: this.ambientLight,
       ambientIntensity: this.ambientIntensity,
-      lightPosition: this.sunPosition
+      lightPosition: this.lightPosition
     };
 
     if (this.sky && this.sky.isLoaded)
@@ -126,45 +128,7 @@ export class Environment {
     return trianglesCount;
   }
 
-  setDirectionalLightIntensity(intensity) {
-    this.dirLightIntensity = Math.max(0, Math.min(20, intensity));
-    
-    this.dirLightColor = [
-      1.0 * this.dirLightIntensity,
-      0.95 * this.dirLightIntensity, 
-      0.85 * this.dirLightIntensity, 
-      1.0
-    ];
-  }
 
-  updateLightDirection() {
-    vec3.subtract(this.dirLightDir, this.groundCenter, this.sunPosition);
-    vec3.normalize(this.dirLightDir, this.dirLightDir);
-  }
-
-  setSunPosition(x, y, z) { 
-    vec3.set(this.sunPosition, x, y, z);
-    this.updateLightDirection();
-    if (this.sun) {
-      this.updateModelTransform(this.sun, 
-        [x, y, z], 
-        [0, 0, 0], 
-        [this.sunScale, this.sunScale, this.sunScale]
-      );
-    }    
-  }
-
-  loadSun() {
-    this.sun = new Model(this.gl, "sun.gltf", false);
-    
-    this.addModel(this.sun, 
-      [this.sunPosition[0], this.sunPosition[1], this.sunPosition[2]], 
-      [0, 0, 0], 
-      [this.sunScale, this.sunScale, this.sunScale]
-    );
-    
-    console.log('Sun model loaded');
-  }
 
   getModelsList() {
     return this.modelTransforms.keys().filter(model => !(model instanceof Character) && !(model.name === 'chair'));
@@ -181,13 +145,53 @@ export class Environment {
     }
   }
 
-  resetSunPosition() {
-    vec3.copy(this.sunPosition, this.baseSunPosition);
+  resetLightPosition() {
+    vec3.copy(this.lightPosition, this.baselightPosition);
     this.updateLightDirection();
-    this.updateModelTransform(this.sun, 
-      [this.sunPosition[0], this.sunPosition[1], this.sunPosition[2]], 
+    this.updateModelTransform(this.pointLight, 
+      [this.lightPosition[0], this.lightPosition[1], this.lightPosition[2]], 
       [0, 0, 0], 
-      [this.sunScale, this.sunScale, this.sunScale]
+      [this.lightScale, this.lightScale, this.lightScale]
     );
+  }
+    // no used 
+  setDirectionalLightIntensity(intensity) {
+    this.dirLightIntensity = Math.max(0, Math.min(20, intensity));
+    
+    this.pointLightColor = [
+      1.0 * this.dirLightIntensity,
+      0.95 * this.dirLightIntensity, 
+      0.85 * this.dirLightIntensity, 
+      1.0
+    ];
+  }
+  // no used 
+  updateLightDirection() {
+    vec3.subtract(this.dirLightDir, this.groundCenter, this.lightPosition);
+    vec3.normalize(this.dirLightDir, this.dirLightDir);
+  }
+
+  setLightPosition(x, y, z) { 
+    vec3.set(this.lightPosition, x, y, z);
+    this.updateLightDirection();
+    if (this.pointLight) {
+      this.updateModelTransform(this.pointLight, 
+        [x, y, z], 
+        [0, 0, 0], 
+        [this.lightScale, this.lightScale, this.lightScale]
+      );
+    }    
+  }
+
+  loadPointLight() {
+    this.pointLight = new Model(this.gl, "pointLight.gltf", false);
+    
+    this.addModel(this.pointLight, 
+      [this.lightPosition[0], this.lightPosition[1], this.lightPosition[2]], 
+      [0, 0, 0], 
+      [this.lightScale, this.lightScale, this.lightScale]
+    );
+    
+    console.log('pointLight model loaded');
   }
 }

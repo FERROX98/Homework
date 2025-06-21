@@ -4,7 +4,7 @@ function createShader(gl, type, src) {
   gl.shaderSource(shader, src);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.error(`Error compiling shader of type ${type}:`, src);
+    console.error(`Error compiling shader of type ${type}:`, src, gl.getShaderInfoLog(shader));
     throw new Error(gl.getShaderInfoLog(shader) );
   }
   return shader;
@@ -73,8 +73,6 @@ async function resolveShaderPaths(name) {
   
   const finalVS = vsExists ? vsPath : 'shaders/obj/default/vertex.glsl';
   const finalFS = fsExists ? fsPath : 'shaders/obj/default/fragment.glsl';
-
-  console.log(`Using shaders: ${finalVS}, ${finalFS}`);
 
   return  { vs: finalVS, fs: finalFS };
 }

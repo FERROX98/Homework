@@ -44,8 +44,7 @@ export class AnimationSelector {
         item.className = 'animation-item';
         item.innerHTML = ` 
           <span class="animation-icon">${animation.icon}</span>
-          <span class="animation-name">${animation.name}</span>
-          <span class="animation-description">${animation.description}</span>`;
+          <span class="animation-name">${animation.name}</span>`;
 
         // circle  = R * 2 *pi
         const anglePerItem = 2 * Math.PI / this.animationToShow.length;

@@ -1,28 +1,44 @@
-TODO List:
+1) uniform non vanno mai bindati solo prese le locazioni (prima seleziona lo shader)
 
-1. Create a plane ok
-2. Set up environment and shader ok
-4. Implement stat command ok (move to  right left )
-5. Implement camera command ok
-6. Select object functionality (texture)
-7. Import OBJ ok
+MESH
 
-8. light 
-9. env object 
-10. Skeletal animation spaceship
-11. Add humanoid model
-12. Skeletal animation hum
-. add free camera
+- **attributes**: Specifica quali dati geometrici sono associati ai vertici della mesh.
+  - `"POSITION": 4` indica che le posizioni dei vertici si trovano nel buffer con indice 4.
+  - `"NORMAL": 5` indica che le normali (direzioni per la luce) sono nel buffer 5.
+  - `"TEXCOORD_0": 6` indica che le coordinate di texture sono nel buffer 6.
 
-13. Implement collision detection
-14. Add shadow mapping
-15. Ground texture
-16. refactor camera and load model 
+- **indices**: `"indices": 7` indica che l’ordine dei vertici per costruire i triangoli (o altre primitive) si trova nel buffer 7. Questo permette di riutilizzare vertici e ridurre la dimensione dei dati.
 
-// refactor 
-// fix walk animation
-// add sun and lights 
-// fix ui adding comand for the sun
-// complete scene (wlaking animation setting ecc, other building)
-// add other animation and other npc 
-// todo texture and normal ground
+- **material**: `"material": 1` specifica quale materiale (ad esempio colore, texture, proprietà di riflessione) viene applicato a questa parte della mesh. Il materiale con indice 1 sarà usato.
+
+
+Questa sezione collega attributi geometrici, indici e materiale a una parte della mesh, permettendo al motore 3D di sapere come disegnare e visualizzare il modello.
+
+NODE
+Questo frammento JSON fa parte di un file GLTF (chair.gltf), un formato usato per descrivere modelli 3D. Vediamo cosa rappresentano le varie proprietà del nodo:
+
+- **"mesh": 0**  
+  Indica che questo nodo fa riferimento alla mesh con indice 0 nell'array delle mesh del file. Una mesh è la geometria 3D vera e propria (vertici, facce, ecc.).
+
+- **"name": "Cube.001"**  
+  È il nome del nodo, utile per identificare l’oggetto nella scena. In questo caso, probabilmente deriva da un oggetto chiamato "Cube.001" in un software di modellazione 3D come Blender.
+
+- **"rotation": [0, -0.7193489670753479, 0, 0.6946489810943604]**  
+  Rappresenta la rotazione del nodo nello spazio, espressa come quaternione (non come angoli Euler). I quaternioni sono usati per evitare problemi come il gimbal lock e per interpolazioni più fluide nelle animazioni.
+
+- **"translation": [-0.015119284391403198, 0.7243914008140564, -0.6715377569198608]**  
+  Indica la posizione del nodo nello spazio 3D, con coordinate X, Y, Z. Qui il nodo è leggermente spostato a sinistra, in alto e indietro rispetto all’origine della scena.
+
+### Possibili "gotcha"
+- La rotazione in quaternioni può essere difficile da interpretare direttamente; spesso si converte in angoli Euler per una comprensione più intuitiva.
+- L’indice della mesh (`mesh: 0`) si riferisce a un array separato nel file GLTF, quindi per vedere la geometria reale bisogna cercare quella mesh.
+
+Se vuoi vedere come questi dati si collegano al resto del file o vuoi una spiegazione su altre parti del GLTF, fammi sapere!
+
+
+
+1) aggiustare animazione walk start rev relaxed  ok
+2) aggiustare nome luce (point) ok
+3) aggiustare texture robot aggiustare texture sedia ok sedia 
+4) settare multiple scene 
+5) revisione finale 

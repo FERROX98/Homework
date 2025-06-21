@@ -2,10 +2,8 @@ precision highp float;
 
 uniform sampler2D albedoMap;
 uniform sampler2D normalTex;
-uniform sampler2D metallicMap;
 uniform sampler2D roughnessMap;
-uniform sampler2D dispTex;
-uniform sampler2D aoMap;
+uniform sampler2D emissiveMap;
 
 uniform vec4 dirLightColor;
 uniform vec4 ambientLight;
@@ -16,15 +14,6 @@ varying vec2 texCoords;
 varying vec3 TangentLightPos;
 varying vec3 TangentViewPos;
 varying vec3 TangentFragPos;
-
-const float minLayers = 10.0;
-const float maxLayers = 10.0;
-const float height_scale = 0.00001;
-
-float rimEffect(vec3 normal, vec3 viewDir) {
-  float rimDot = 1.0 - max(dot(viewDir, normal), 0.0);
-  return pow(rimDot, 3.0);
-}
 
 float distributionGGX(vec3 N, vec3 H, float roughness) {
   float a2 = roughness * roughness * roughness * roughness;
@@ -53,26 +42,21 @@ void main() {
   vec3 viewDir = vec3(TangentViewPos - TangentFragPos);
   vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
 
-  vec2 texCoordsDisp = texCoords; //ParallaxMapping(texCoords, viewDir);
-  // if(texCoordsDisp.x > 1.0 || texCoordsDisp.y > 1.0 || texCoordsDisp.x < 0.0 || texCoordsDisp.y < 0.0) {
-  //   gl_FragColor = vec4(0.0);
-  //   return;
-  // }
+  vec2 texCoordsDisp = texCoords; 
 
   vec3 albedo;
   vec3 normalMap;
-  float metallic = 0.0; // metallic is not used in this shader
+  float metallic = 0.00;
   float roughness;
   float ao = 1.0;
 
   // from RGBs to linear space
-  //albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
-    albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
-
+  albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
+  //albedo = texture2D(albedoMap, texCoordsDisp).rgb ;
+  vec3 emission = texture2D(emissiveMap, texCoordsDisp).rgb * 0.5;
+  //albedo += emission; 
   normalMap = texture2D(normalTex, texCoordsDisp).rgb;
-  //metallic = texture2D(metallicMap, texCoordsDisp).r;
-  roughness =  0.05527864098548889; //texture2D(roughnessMap, texCoordsDisp).r;
-  //ao = texture2D(aoMap, texCoordsDisp).r; 
+  roughness = texture2D(roughnessMap, texCoordsDisp).r;
 
   normalMap = normalize(normalMap * 2.0 - 1.0);
   vec3 N = normalize(normalMap);
@@ -109,19 +93,19 @@ void main() {
   vec3 specular = numerator / max(denominator, 0.001);  
 
   // soft shadow
-  float NdotL = max(dot(N, L), 0.01);
+  float NdotL = max(dot(N, L), 0.00);
   Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 
   vec3 ambient = ambientIntensity * ambientLight.rgb * albedo * ao;
   vec3 color = ambient + Lo;
 
-  // HDR tone mapping not needing any floating point framebuffer at all! However
+  //HDR tone mapping not needing any floating point framebuffer at all! However
   color = color / (color + vec3(1.0));
 
   // from linear to RGBs space 
   color = pow(color, vec3(1.0 / 2.2));
 
-  // color *= 1.2;
+   //color *= 1.2;
 
   gl_FragColor = vec4(color, 1.0);
 }
