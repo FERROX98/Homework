@@ -2,18 +2,22 @@ precision highp float;
 
 uniform sampler2D albedoMap;
 uniform sampler2D normalTex;
+uniform sampler2D metallicMap;
 uniform sampler2D roughnessMap;
-uniform sampler2D emissiveMap;
 
-uniform vec4 dirLightColor;
+uniform vec4 pointLightColor;
 uniform vec4 ambientLight;
 uniform float ambientIntensity;
-const float PI = 3.14159265359;
+uniform vec3 lightPosition;
+uniform bool enableHDR;
+uniform bool enableAttenuation;
+uniform float attenuationRange;
 
 varying vec2 texCoords;
-varying vec3 TangentLightPos;
-varying vec3 TangentViewPos;
-varying vec3 TangentFragPos;
+varying vec3 vFragPos;
+varying vec3 vNormal;
+
+const float PI = 3.14159265359;
 
 float distributionGGX(vec3 N, vec3 H, float roughness) {
   float a2 = roughness * roughness * roughness * roughness;
@@ -39,43 +43,41 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 
 void main() {
 
-  vec3 viewDir = vec3(TangentViewPos - TangentFragPos);
-  vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
-
-  vec2 texCoordsDisp = texCoords; 
-
-  vec3 albedo;
-  vec3 normalMap;
-  float metallic = 0.00;
-  float roughness;
-  float ao = 1.0;
+  vec3 viewDir = normalize(-vFragPos);
+  vec3 lightDir = normalize(lightPosition - vFragPos);
 
   // from RGBs to linear space
-  albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
-  //albedo = texture2D(albedoMap, texCoordsDisp).rgb ;
-  vec3 emission = texture2D(emissiveMap, texCoordsDisp).rgb * 0.5;
-  //albedo += emission; 
-  normalMap = texture2D(normalTex, texCoordsDisp).rgb;
-  roughness = texture2D(roughnessMap, texCoordsDisp).r;
+  vec3 albedo = pow(texture2D(albedoMap, texCoords).rgb, vec3(2.2));
+  vec3 normalMap = texture2D(normalTex, texCoords).rgb;
+  float metallic = clamp(texture2D(metallicMap, texCoords).r, 5.5, 6.0); // 6.0
+  float roughness = clamp(texture2D(roughnessMap, texCoords).r, 0.8, 1.5); //0.3
 
   normalMap = normalize(normalMap * 2.0 - 1.0);
-  vec3 N = normalize(normalMap);
+  vec3 N = normalize(vNormal + normalMap * 0.02);
   vec3 V = normalize(viewDir);
 
   // metal
-  vec3 F0 = vec3(0.04); 
+  vec3 F0 = vec3(0.04);
   F0 = mix(F0, albedo, metallic);
-
-  // Calcolo illuminazione
-  vec3 Lo = vec3(0.0);
 
   // light direction
   vec3 L = normalize(lightDir);
   // half vector
   vec3 H = normalize(V + L);
 
-  // constan (sun light)
-  vec3 radiance = dirLightColor.rgb;        
+  float distance = length(lightPosition - vFragPos);
+  
+  float attenuation = 1.0;
+  if (enableAttenuation) {
+    float c1 = 0.00003;
+    float c2 = 0.0009 * attenuationRange;
+    float c3 = 0.000032 * attenuationRange * attenuationRange;
+    
+    attenuation = 1.0 / (c1 + c2 * distance + c3 * distance * distance);
+    attenuation = clamp(attenuation, 0.0, 3.0);
+  }
+  
+  vec3 radiance = pointLightColor.rgb * attenuation;       
 
   // cook-torrance brdf
   float NDF = distributionGGX(N, H, roughness);
@@ -90,22 +92,27 @@ void main() {
 
   vec3 numerator = NDF * G * F;
   float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-  vec3 specular = numerator / max(denominator, 0.001);  
+  vec3 specular = numerator / max(denominator, 0.001);
 
-  // soft shadow
   float NdotL = max(dot(N, L), 0.00);
-  Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+  // reflect light
+  vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 
-  vec3 ambient = ambientIntensity * ambientLight.rgb * albedo * ao;
+  vec3 ambient = ambientIntensity * ambientLight.rgb * albedo;
   vec3 color = ambient + Lo;
 
-  //HDR tone mapping not needing any floating point framebuffer at all! However
-  color = color / (color + vec3(1.0));
+  // Rim light
+  float rim = pow(1.0 - max(dot(N, V), 0.0), 2.0);
+  vec3 rimColor = mix(vec3(0.1, 0.1, 0.1), albedo, 0.2);
+  vec3 rimLight = rim * rimColor * metallic * 0.1;
+  color += rimLight;
+
+  if (enableHDR) {
+  // HDR tone mapping not needing any floating point framebuffer at all! However
+    color = color / (color + vec3(1.0));
+  }
 
   // from linear to RGBs space 
   color = pow(color, vec3(1.0 / 2.2));
-
-   //color *= 1.2;
-
   gl_FragColor = vec4(color, 1.0);
 }

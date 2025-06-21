@@ -6,9 +6,12 @@ uniform sampler2D metallicMap;
 uniform sampler2D roughnessMap;
 uniform sampler2D aoMap;
 
-uniform vec4 dirLightColor;
+uniform vec4 pointLightColor;
 uniform vec4 ambientLight;
 uniform float ambientIntensity;
+uniform bool enableHDR;
+uniform bool enableAttenuation;
+uniform float attenuationRange;
 const float PI = 3.14159265359;
 
 varying vec2 texCoords;
@@ -44,20 +47,12 @@ void main() {
   vec3 viewDir = normalize(vec3(TangentViewPos - TangentFragPos));
   vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
 
-  vec2 texCoordsDisp = texCoords; 
-
-  vec3 albedo;
-  vec3 normalMap;
-  float metallic =0.0;
-  float roughness;
-  float ao = 1.0;
-
   // from RGBs to linear space
-  albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
-  normalMap = texture2D(normalTex, texCoordsDisp).rgb;
-  metallic = texture2D(metallicMap, texCoordsDisp).r;
-  roughness = texture2D(roughnessMap, texCoordsDisp).r;
-  ao = texture2D(aoMap, texCoordsDisp).r; 
+  vec3 albedo = pow(texture2D(albedoMap, texCoords).rgb, vec3(2.2));
+  vec3 normalMap = texture2D(normalTex, texCoords).rgb;
+  float metallic = texture2D(metallicMap, texCoords).r;
+  float roughness = texture2D(roughnessMap, texCoords).r; 
+  float ao = texture2D(aoMap, texCoords).r; 
 
   normalMap = normalize(normalMap * 2.0 - 1.0);
   vec3 N = normalize(normalMap);
@@ -75,8 +70,19 @@ void main() {
   // half vector
   vec3 H = normalize(V + L);
 
-  // constan (sun light)
-  vec3 radiance = dirLightColor.rgb;        
+  float distance = length(TangentLightPos - TangentFragPos);
+
+  float attenuation = 1.0;
+  if (enableAttenuation) {
+    float c1 = 0.00003;
+    float c2 = 0.0009 * attenuationRange;
+    float c3 = 0.000032 * attenuationRange * attenuationRange;
+    
+    attenuation = 1.0 / (c1 + c2 * distance + c3 * distance * distance);
+    attenuation = clamp(attenuation, 0.0, 3.0);
+  }
+  
+  vec3 radiance = pointLightColor.rgb * attenuation;
 
   // cook-torrance brdf
   float NDF = distributionGGX(N, H, roughness);
@@ -100,13 +106,13 @@ void main() {
   vec3 ambient = ambientIntensity * ambientLight.rgb * albedo * ao;
   vec3 color = ambient + Lo;
 
+  if (enableHDR) {
   // HDR tone mapping not needing any floating point framebuffer at all! However
-  color = color / (color + vec3(1.0));
-
+    color = color / (color + vec3(1.0));
+  } 
+  
   // from linear to RGBs space 
   color = pow(color, vec3(1.0 / 2.2));
-
-  // color *= 1.2;
 
   gl_FragColor = vec4(color, 1.0);
 }

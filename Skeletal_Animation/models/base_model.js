@@ -55,27 +55,19 @@ export class BaseModel {
         gl.uniformMatrix4fv(uniforms.view, false, view);
         gl.uniformMatrix4fv(uniforms.model, false, modelMatrix);
         
-         // from world to view space NO USED 
-        // const lightDirWorldSpace = vec4.fromValues(lights.dirLightDir[0], lights.dirLightDir[1],
-        //                 lights.dirLightDir[2], 0.0);
-        // const lightDirViewSpace = lightDirWorldSpace;
-        // vec4.transformMat4(lightDirViewSpace, lightDirViewSpace, view);
-        // vec4.normalize(lightDirViewSpace, lightDirViewSpace);
-
         // from world to view space
         const lightPosition = lights.lightPosition;
         // TODO check la luce in world space per il terreno (per avere ombre fisse) ? 
         const lightPositionViewSpace = vec4.fromValues(lightPosition[0], lightPosition[1], lightPosition[2], 1.0);
         vec4.transformMat4(lightPositionViewSpace, lightPositionViewSpace, view);
-        
-        // fragment uniforms
-        // not used
-        // gl.uniform4fv(uniforms.dirLightDir, lightDirViewSpace);
-        
+
         gl.uniform4fv(uniforms.pointLightColor, lights.pointLightColor);
         gl.uniform4fv(uniforms.ambientLight, lights.ambientLight);
         gl.uniform1f(uniforms.ambientIntensity, lights.ambientIntensity);
         gl.uniform3fv(uniforms.lightPosition, vec3.fromValues(lightPositionViewSpace[0], lightPositionViewSpace[1], lightPositionViewSpace[2]));
+        gl.uniform1i(uniforms.enableHDR, lights.hdr ? 1 : 0);
+        gl.uniform1i(uniforms.enableAttenuation, lights.attenuationEnabled ? 1 : 0);
+        gl.uniform1f(uniforms.attenuationRange, lights.attenuationRange);
 
         // from local to view space
         const modelViewMatrix = mat4.create();
@@ -107,29 +99,19 @@ export class BaseModel {
 
         if (src.vertNormalLoc !== -1 && src.vertNormalBuffer)
             this.bindAndEnableBuffers(src.vertNormalLoc, src.vertNormalBuffer, 3);
-        //else
-          //  console.warn(`[${this.name}] No vertex normal`, src.vertNormalLoc, src.vertNormalBuffer);
-       
+        
         if (src.vertTexCoordsLoc !== -1 && src.vertTexCoordsBuffer)
             this.bindAndEnableBuffers(src.vertTexCoordsLoc, src.vertTexCoordsBuffer, 2);
-       // else
-           // console.warn(`[${this.name}] No vertex texture coords`, src.vertTexCoordsLoc, src.vertTexCoordsBuffer);
-
+     
         if (src.vertTangentLoc !== -1 && src.vertTangentBuffer)
             this.bindAndEnableBuffers(src.vertTangentLoc, src.vertTangentBuffer, 3);
-     //   else
-        //    console.warn(`[${this.name}] No vertex tangent`, src.vertTangentLoc, src.vertTangentBuffer);
-
+     
         if (src.jointLoc !== -1 && src.jointBuffer) 
             this.bindAndEnableBuffers(src.jointLoc, src.jointBuffer, 4);
-       // else
-          //  console.warn(`[${this.name}] No joint attribute`, src.jointLoc, src.jointBuffer);
-
+      
         if (src.weightLoc !== -1 && src.weightBuffer) 
             this.bindAndEnableBuffers(src.weightLoc, src.weightBuffer, 4);
-       // else
-            //console.warn(`[${this.name}] No weight attribute`, src.weightLoc, src.weightBuffer);
-        
+    
 
     }   
 
@@ -151,8 +133,11 @@ export class BaseModel {
           normalMatrix: gl.getUniformLocation(program, 'normalMatrix'),
           isTextureEnabled: gl.getUniformLocation(program, 'isTextureEnabled'),
 
-          jointMatrices: gl.getUniformLocation(program, 'jointMatrices')
-
+          jointMatrices: gl.getUniformLocation(program, 'jointMatrices'),
+          
+          enableHDR: gl.getUniformLocation(program, 'enableHDR'),
+          enableAttenuation: gl.getUniformLocation(program, 'enableAttenuation'),
+          attenuationRange: gl.getUniformLocation(program, 'attenuationRange')
         };
     }
 

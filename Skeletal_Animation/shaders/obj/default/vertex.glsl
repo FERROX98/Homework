@@ -3,7 +3,6 @@ attribute vec3 position;
 attribute vec2 textureCoords;
 attribute vec3 normal; 
 attribute vec3 tangent;
-//attribute vec3 bitangent;
 
 uniform mat4 projection, view, model;
 uniform mat3 normalMatrix;

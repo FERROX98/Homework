@@ -159,7 +159,7 @@
 
       <!-- Lighting Control Section -->
       <div class="camera-section">
-        <div class="camera-section-title">Sun & Lighting</div>
+        <div class="camera-section-title">Lighting</div>
 
         <!-- Objects Visibility Control -->
         <div class="light-control-group">
@@ -199,6 +199,24 @@
         <div class="lighting-info">
           <span id="lighting-status">Directional light follows sun position</span>
         </div>
+        
+        <div style="margin-bottom: 10px;">
+              <input type="checkbox" id="enable-hdr" checked>
+              <label for="enable-hdr">HDR</label>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+              <input type="checkbox" id="enable-attenuation" checked>
+                <label for="enable-attenuation">Light Attenuation</label>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+              <label for="attenuation-range" id="attenuation-label">Attenuation range: 1.0</label>
+              <input type="range" id="attenuation-range" min="0.1" max="5.0" step="0.1" value="1.0">
+        </div>
+      </div>
+
+
       </div>
 
       <!-- Reset Button -->

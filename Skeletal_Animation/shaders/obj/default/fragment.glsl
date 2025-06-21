@@ -7,9 +7,13 @@ uniform sampler2D roughnessMap;
 uniform sampler2D dispTex;
 uniform sampler2D aoMap;
 
-uniform vec4 dirLightColor;
+uniform vec4 pointLightColor;
 uniform vec4 ambientLight;
 uniform float ambientIntensity;
+uniform bool enableHDR;
+uniform bool enableAttenuation;
+uniform float attenuationRange;
+
 const float PI = 3.14159265359;
 
 varying vec2 texCoords;
@@ -18,18 +22,13 @@ varying vec3 TangentViewPos;
 varying vec3 TangentFragPos;
 
 const float minLayers = 10.0;
-const float maxLayers = 10.0;
-const float height_scale = 0.00001;
+const float maxLayers = 20.0;
+const float height_scale = 0.0001;
 
 // Funzioni PBR
-vec2 ParallaxMappingSimplified(vec2 texCoords, vec3 viewDir) {
-  float height = texture2D(dispTex, texCoords).r;
-  vec2 p = viewDir.xy / viewDir.z * (height * 1.1);
-  return texCoords - p;
-}
 
 vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir) {
-  const int maxSteps = 20;
+  const int maxSteps = 200;
 
   float numLayers = mix(maxLayers, minLayers, max(dot(vec3(0.0, 0.0, 1.0), viewDir), 0.0));
   float layerDepth = 1.0 / numLayers;
@@ -95,7 +94,7 @@ void main() {
 
   vec2 texCoordsDisp = ParallaxMapping(texCoords, viewDir);
   if(texCoordsDisp.x > 1.0 || texCoordsDisp.y > 1.0 || texCoordsDisp.x < 0.0 || texCoordsDisp.y < 0.0) {
-    gl_FragColor = vec4(0.0);
+    gl_FragColor = vec4(0.32, 0.32, 0.32, 0.0);
     return;
   }
 
@@ -122,8 +121,19 @@ void main() {
   // half vector
   vec3 H = normalize(V + L);
 
-  // constan (sun light)
-  vec3 radiance = dirLightColor.rgb;        
+  float distance = length(TangentLightPos - TangentFragPos);
+  
+  float attenuation = 1.0;
+  if (enableAttenuation) {
+    float c1 = 0.00003;
+    float c2 = 0.0009 * attenuationRange;
+    float c3 = 0.000032 * attenuationRange * attenuationRange;
+    
+    attenuation = 1.0 / (c1 + c2 * distance + c3 * distance * distance);
+    attenuation = clamp(attenuation, 0.0, 3.0);
+  }
+  
+  vec3 radiance = pointLightColor.rgb * attenuation;       
 
   // cook-torrance brdf
   float NDF = distributionGGX(N, H, roughness);
@@ -141,19 +151,20 @@ void main() {
   vec3 specular = numerator / max(denominator, 0.001);  
 
   // soft shadow
-  float NdotL = max(dot(N, L), 0.01);
+  float NdotL = max(dot(N, L), 0.00);
   Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 
   vec3 ambient = ambientIntensity * ambientLight.rgb * albedo * ao;
   vec3 color = ambient + Lo;
 
+  if (enableHDR) {
   // HDR tone mapping not needing any floating point framebuffer at all! However
-  color = color / (color + vec3(1.0));
+    color = color / (color + vec3(1.0));
+  }
 
   // from linear to RGBs space 
   color = pow(color, vec3(1.0 / 2.2));
 
-  // color *= 1.2;
-
+ 
   gl_FragColor = vec4(color, 1.0);
 }

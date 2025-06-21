@@ -38,6 +38,10 @@ export class Environment {
     this.dirLightDir = vec3.create();
 
     this.setLightPosition(this.lightPosition[0], this.lightPosition[1], this.lightPosition[2]);  
+    
+    this.hdr = true;
+    this.attenuationRange = 1.0; 
+    this.attenuationEnabled = true;
 
     this.updateLightDirection();
     this.init();
@@ -98,7 +102,9 @@ export class Environment {
     let trianglesCount = 0;
 
     let lights = {
-      dirLightDir: this.dirLightDir,
+      attenuationEnabled: this.attenuationEnabled,
+      hdr: this.hdr,
+      attenuationRange: this.attenuationRange,
       pointLightColor: this.pointLightColor,
       ambientLight: this.ambientLight,
       ambientIntensity: this.ambientIntensity,
@@ -153,6 +159,10 @@ export class Environment {
       [0, 0, 0], 
       [this.lightScale, this.lightScale, this.lightScale]
     );
+
+    this.attenuationEnabled = true;
+    this.attenuationRange = 1.0;
+    this.hdr = true;
   }
     // no used 
   setDirectionalLightIntensity(intensity) {

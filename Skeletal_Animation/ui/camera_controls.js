@@ -37,6 +37,10 @@ export class CameraControls {
     this.lightIntensitySlider = document.getElementById("light-intensity-slider");
     this.lightIntensityValue = document.getElementById("light-intensity-value");
     this.lightingStatus = document.getElementById("lighting-status");
+    this.enableHDR = document.getElementById("enable-hdr");
+    this.enableAttenuation = document.getElementById("enable-attenuation");
+    this.attenuationRangeSlider = document.getElementById("attenuation-range");
+    this.attenuationRangeLabel = document.getElementById("attenuation-label");
 
     this.objectsList = document.getElementById("objects-list");
   }
@@ -103,20 +107,17 @@ export class CameraControls {
 
     // light
     this.lightXSlider.addEventListener('input', (e) => {
-      const x = parseFloat(e.target.value);
-      this.lightXValue.textContent = x;
+      this.lightXValue.textContent = parseFloat(e.target.value);
       this.updatePointLightPosition();
     });
 
     this.lightYSlider.addEventListener('input', (e) => {
-      const y = parseFloat(e.target.value);
-      this.lightYValue.textContent = y;
+      this.lightYValue.textContent = parseFloat(e.target.value);
       this.updatePointLightPosition();
     });
 
     this.lightZSlider.addEventListener('input', (e) => {
-      const z = parseFloat(e.target.value);
-      this.lightZValue.textContent = z;
+      this.lightZValue.textContent = parseFloat(e.target.value)
       this.updatePointLightPosition();
     });
 
@@ -124,6 +125,23 @@ export class CameraControls {
       const intensity = parseFloat(e.target.value);
       this.lightIntensityValue.textContent = intensity.toFixed(1);
       this.updateLightIntensity(intensity);
+    });
+
+    // HDR
+    this.enableHDR.addEventListener('change', (e) => {
+      this.environment.hdr =e.target.checked;
+    });
+
+    // Attenuation
+    this.enableAttenuation.addEventListener('change', (e) => {
+      this.environment.attenuationEnabled =e.target.checked;
+      this.attenuationRangeSlider.disabled = !e.target.checked;
+      this.attenuationRangeLabel.style.opacity = e.target.checked ? '1' : '0.5';
+    });
+
+    this.attenuationRangeSlider.addEventListener('input', (e) => {
+      const attenuationRange = parseFloat(e.target.value);
+      this.updateAttenuationRange(attenuationRange);
     });
 
     //resets
@@ -157,7 +175,7 @@ export class CameraControls {
     this.speedValue.textContent = displaySpeed.toFixed(2);
 
     //rotatiomn
-    const displayRotationSpeed = this.characterController.rotationSpeed ;
+    const displayRotationSpeed = this.characterController.rotationSpeed;
     this.rotationSpeedSlider.value = displayRotationSpeed;
     this.rotationSpeedValue.textContent = displayRotationSpeed.toFixed(2);
 
@@ -171,9 +189,18 @@ export class CameraControls {
     this.lightZValue.textContent = this.lightZSlider.value;
 
     // light intensity
+    const hdr = this.environment.hdr;
+    const attenuationEnabled = this.environment.attenuationEnabled;
+    const attenuationRange = this.environment.attenuationRange;
     this.lightIntensitySlider.value = this.environment.dirLightIntensity.toFixed(1);
     this.lightIntensityValue.textContent = this.lightIntensitySlider.value;
     this.lightingStatus.textContent = `Light: [${lightPosition[0].toFixed(2)}, ${lightPosition[1].toFixed(2)}, ${lightPosition[2].toFixed(2)}] - Light intensity: ${this.environment.dirLightIntensity.toFixed(1)}`;
+    this.enableHDR.checked = hdr;
+    this.enableAttenuation.checked = attenuationEnabled;
+    this.attenuationRangeSlider.value = attenuationRange.toFixed(1);
+    this.attenuationRangeLabel.textContent = `Attenuation range: ${this.environment.attenuationRange.toFixed(1)}`;
+    this.attenuationRangeSlider.disabled = !attenuationEnabled;
+    this.attenuationRangeLabel.style.opacity = attenuationEnabled ? '1' : '0.5';
   }
 
   resetToDefaults() {
@@ -278,6 +305,14 @@ export class CameraControls {
     });
   }
 
+
+  updateAttenuationRange(attenuationRange) {
+    if (!this.environment) return;
+
+    this.environment.attenuationRange = attenuationRange;
+    this.attenuationRangeLabel.textContent = `Attenuation range: ${attenuationRange.toFixed(1)}`;
+  }
+
   updateLightIntensity(intensity) {
     if (!this.environment) return;
 
@@ -324,7 +359,7 @@ export class CameraControls {
       if (this.characterController.model && this.characterController.model.animationSpeed) {
 
         const speedMultiplier = this.characterController.animationSpeedMultiplier;
-        this.characterController.model.animationSpeed = normalizedSpeed * speedMultiplier *  this.characterController.normalizationFactor(normalizedSpeed);
+        this.characterController.model.animationSpeed = normalizedSpeed * speedMultiplier * this.characterController.normalizationFactor(normalizedSpeed);
       }
       console.log(`Character move speed updated to: ${this.characterController.moveSpeed} (normalized: ${normalizedSpeed})`);
       console.log(`Character animation speed updated to: ${this.characterController.model?.animationSpeed}`);
@@ -338,6 +373,6 @@ export class CameraControls {
 
   updateRotationSpeed(normalizedRotationSpeed) {
     if (!this.characterController) return;
-    this.characterController.rotationSpeed = normalizedRotationSpeed *0.8;
+    this.characterController.rotationSpeed = normalizedRotationSpeed * 0.8;
   }
 }

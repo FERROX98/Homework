@@ -488,3 +488,25 @@ input[type="range"]::-moz-range-thumb {
   background: #3e8e41;
 }
 
+#controlsContainer {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    font-family: Arial, sans-serif;
+    z-index: 1000;
+}
+
+#controlsContainer h3 {
+  margin: 0 0 10px 0;
+}
+#controlsContainer label {
+  margin-left: 5px;
+}
+#attenuation-factor {
+  width: 100%;
+  margin-top: 5px;
+}
