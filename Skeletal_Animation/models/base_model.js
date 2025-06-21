@@ -146,8 +146,6 @@ export class BaseModel {
     const gl = this.gl;
     gl.useProgram(this.program);
 
-    console.warn(`[${this.name}] Initializing buffers for model:`, src, dest);
-
     // loc & src & buffer
     dest.vertLoc = gl.getAttribLocation(this.program, 'position');
     if (dest.vertLoc === -1 || !src.positions)

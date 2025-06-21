@@ -12,7 +12,7 @@ export class GLTFUtils {
         if (!model instanceof Model)
             throw new Error("model must be an instance of Model");
 
-        if (debug) console.log(`[${model.name}] Starting GLTF load from: ${url}`);
+
 
         // load the gltf file
         const res = await fetch(url);
@@ -38,7 +38,7 @@ export class GLTFUtils {
         // Set animation data
         model.animations = json.animations || [];
 
-        if (debug) console.log(`[${model.name}] Animations found: ${model.animated}`);
+
 
         if (model.animated)
             AnimationUtils.configureAnimationData(model, json, bin);
@@ -117,7 +117,7 @@ export class GLTFUtils {
 
             // retrieve the array of all inverse bind matrices (one for each joint)
             const ibmArray = this.readArrayFromAccessor(ibmAccessor, model);
-            if (debug) console.log(`[${model.name}] inverseBindMatrices count:`, ibmAccessor.count);
+
            
             for (let i = 0; i < ibmAccessor.count; i++) {
                 // 4x4 matrix for each joint
@@ -168,7 +168,7 @@ export class GLTFUtils {
         // mantenuto solo per futuri sviluppi, al momento ho mergiato tutte le primitive sotto lo stesso 
         // oggetto in blender
         for (const primitive of allPrimitives) {
-            if (debug) console.log(`[${model.name}] Processing primitive:`, primitivesCount++);
+
 
             // vertex positions 
             const position = this.getDataFromPrimitive('POSITION', model, primitive);
@@ -184,7 +184,7 @@ export class GLTFUtils {
                 joints = new Float32Array(joints);
             }
 
-            if (debug) console.log(`[${model.name}] Joint length: ${joints ? joints.length : 'N/A'}`);
+
 
             // Retrieve vertex for each object 
             const indexAcc = accessors[primitive.indices];

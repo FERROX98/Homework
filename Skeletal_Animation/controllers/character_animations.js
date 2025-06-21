@@ -32,7 +32,6 @@ export const animations = [
 export class CharacterAnimations {
 
     static getAnimationByName(name) {
-        console.log(`Getting animation by name: ${name}`);
         if (animations.some(animation => animation.name === name)) {
             return animations.find(animation => animation.name === name);
         } else { 
@@ -54,7 +53,6 @@ export class CharacterAnimations {
     }
 
     static getMovementSensitivity(animationType) {
-        //console.log(`Getting movement sensitivity for animation type: ${animationType}`);
         switch (animationType) {
             case 'relaxed':
                 return 0.6;
@@ -66,7 +64,6 @@ export class CharacterAnimations {
     }
 
     static getMovementPhase(animationType) {
-       // console.log(`Getting movement phase for animation type: ${animationType}`);
         switch (animationType) {
             case 'WalkStart':
                 return 0.1;
@@ -86,7 +83,6 @@ export class CharacterAnimations {
     }
 
      static getAnimationSensitivity(animationType) {
-        //console.log(`Getting animation sensitivity for animation type: ${animationType}`);
         switch (animationType) {
         case 'Idle':
             return 0.5;

@@ -25,7 +25,7 @@ export class Ground extends BaseModel {
         
         TextureUtils.loadTextures(this,basePath).then((textures) => {
           this.textures = textures;
-          console.log(`[${this.name}]  textures loaded:`, this.textures);
+
           this.initTexture();
           this.isLoaded = true;
         });

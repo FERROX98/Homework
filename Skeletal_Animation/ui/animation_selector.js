@@ -8,7 +8,7 @@ export class AnimationSelector {
   constructor(caracterController) {
     this.animationToShow = animations.filter(animation => animation.show);
 
-    if (debug) console.log('AnimationSelector initialized with controller:', caracterController);
+
     this.caracterController = caracterController;
 
     if (!this.caracterController) {
@@ -97,7 +97,6 @@ export class AnimationSelector {
     const selected = this.animationToShow[this.selectedIndex];
 
     if (this.caracterController) {
-      console.log('Activating animation:', selected.name);
       this.caracterController.setAnimation(selected.name);
     }
   }

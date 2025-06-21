@@ -36,7 +36,6 @@ export class CameraControls {
     // Light
     this.lightIntensitySlider = document.getElementById("light-intensity-slider");
     this.lightIntensityValue = document.getElementById("light-intensity-value");
-    this.lightingStatus = document.getElementById("lighting-status");
     this.enableHDR = document.getElementById("enable-hdr");
     this.enableAttenuation = document.getElementById("enable-attenuation");
     this.attenuationRangeSlider = document.getElementById("attenuation-range");
@@ -194,7 +193,6 @@ export class CameraControls {
     const attenuationRange = this.environment.attenuationRange;
     this.lightIntensitySlider.value = this.environment.dirLightIntensity.toFixed(1);
     this.lightIntensityValue.textContent = this.lightIntensitySlider.value;
-    this.lightingStatus.textContent = `Light: [${lightPosition[0].toFixed(2)}, ${lightPosition[1].toFixed(2)}, ${lightPosition[2].toFixed(2)}] - Light intensity: ${this.environment.dirLightIntensity.toFixed(1)}`;
     this.enableHDR.checked = hdr;
     this.enableAttenuation.checked = attenuationEnabled;
     this.attenuationRangeSlider.value = attenuationRange.toFixed(1);
@@ -296,7 +294,6 @@ export class CameraControls {
       checkbox.addEventListener('change', (e) => {
         const isVisible = e.target.checked;
         this.environment.setModelVisibility(modelInfo, isVisible);
-        console.log(`Toggled ${modelInfo.name} visibility: ${isVisible}`);
       });
 
       objectItem.appendChild(checkbox);
@@ -322,7 +319,6 @@ export class CameraControls {
     const y = parseFloat(this.lightYSlider.value);
     const z = parseFloat(this.lightZSlider.value);
 
-    this.lightingStatus.textContent = `Light: [${x}, ${y}, ${z}] - Light intensity: ${intensity.toFixed(1)}`;
   }
 
   updatePointLightPosition() {
@@ -335,7 +331,6 @@ export class CameraControls {
     this.environment.setLightPosition(x, y, z);
 
     const intensity = this.lightIntensitySlider ? parseFloat(this.lightIntensitySlider.value) : 1.0;
-    this.lightingStatus.textContent = `Light: [${x}, ${y}, ${z}] - Light intensity: ${intensity.toFixed(1)}`;
   }
 
   updateFOV(fov) {
@@ -361,8 +356,7 @@ export class CameraControls {
         const speedMultiplier = this.characterController.animationSpeedMultiplier;
         this.characterController.model.animationSpeed = normalizedSpeed * speedMultiplier * this.characterController.normalizationFactor(normalizedSpeed);
       }
-      console.log(`Character move speed updated to: ${this.characterController.moveSpeed} (normalized: ${normalizedSpeed})`);
-      console.log(`Character animation speed updated to: ${this.characterController.model?.animationSpeed}`);
+
     }
     else {
 

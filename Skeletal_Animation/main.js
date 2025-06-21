@@ -61,19 +61,15 @@ export class Main {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    console.log("WebGL initialized successfully");
     return gl;
   }
 
   setupCharacterController(model, renderer, env) {
     if (model || model.isLoaded ) {
-      console.log(`Setting up character controller ${model.name}`);
-
       const characterController = new CharacterController(model, env, renderer.camera);
       characterController.setPosition(50, 0, 60);
       renderer.setCharacterController(characterController);
     } else {
-      //sleep 2 sec and repeat 
       setTimeout(() => {
         this.setupCharacterController(model, renderer, env);
       }, 2000);

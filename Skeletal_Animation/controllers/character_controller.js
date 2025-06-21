@@ -78,15 +78,12 @@ export class CharacterController {
 
   initSpeedModel(moveSpeed = 0.13, rotationSpeed = 0.2) {
     if (this.model) {
-      console.log(`[${this.model.name}] exponential speed model initialized with moveSpeed: ${moveSpeed}, Math.exp(-moveSpeed): ${this.normalizationFactor(moveSpeed)}`);
       this.model.animationSpeed = moveSpeed * this.animationSpeedMultiplier * this.normalizationFactor(moveSpeed);
-      console.log(`[${this.model.name}] animation speed set to: ${this.model.animationSpeed}`);
       this.rotationSpeed = rotationSpeed;
-      this.moveSpeed = moveSpeed ;
-      this.baseSpeed = moveSpeed ;
+      this.moveSpeed = moveSpeed;
+      this.baseSpeed = moveSpeed;
       this.baseRotationSpeed = rotationSpeed;
       this.model.baseAnimationSpeed = this.model.animationSpeed;
-      console.log(`[${this.model.name}] moveSpeed: ${this.moveSpeed},`);
     }
   }
 
@@ -107,8 +104,6 @@ export class CharacterController {
 
     this.cameraControls.setReferences(this.camera, this, this.environment);
     this.animationSelector = new AnimationSelector(this);
-
-    if (debug) console.log('setUpControls updated with character controller');
 
     window.addEventListener('keydown', (e) => {
       if (e.key.toLowerCase() === 'c') {
@@ -140,7 +135,6 @@ export class CharacterController {
                   .filter(k => k !== key && this.keys[k] && (k === 'w' ||  k=== 's') && (key !== 'a' && key !== 'd' ));
                       
         if (otherKeysPressed.length > 0) {
-          console.log(`Other keys pressed:`, otherKeysPressed);
           this.isMoving = false;
           otherKeysPressed.forEach(k => this.keys[k] = false); 
         }
@@ -149,19 +143,15 @@ export class CharacterController {
         const now = performance.now();  
         
         if ((isForward ||isBackward) && this.startTimeAnimation  && (now - this.startTimeAnimation  < this.doubleClickThreshold)) {
-          console.log(`Detected double click on ${key}`);
-          console.log('Double trheshold:', this.doubleClickThreshold);
           return;
         } 
 
         if (isForward) {
-          console.log('Moving forward')
           this.model.setStartAnimationWalk();
           this.startTimeMoving = performance.now();
           this.startTimeAnimation = performance.now();
           
         } else if (isBackward) {
-          console.log('Moving backward');
           this.model.setStartAnimationWalk(false);
           this.startTimeMoving = performance.now();
           this.startTimeAnimation = performance.now();
@@ -184,7 +174,6 @@ export class CharacterController {
 
         // check if there is another key pressed among forward ,backward
         if (!this.keys[key]) {
-          console.log(`Key ${key} is not pressed, ignoring keyup event`);
           return;
         }
 
@@ -192,30 +181,24 @@ export class CharacterController {
           if (e.repeat)
               return;
           
-          console.log('Stopped moving forward');
           this.model.setEndAnimationWalk();
         }else if (isBackward) {
           if (e.repeat )
               return;
           
-          console.log('Stopped moving backward');
           this.model.setEndAnimationWalk(false);
         }
 
         const timeBeforeEnd = CharacterAnimations.getAnimationByName(this.model.currentAnimation.name).waitAfter || 0;
         const animationSpeed = this.model ? this.model.animationSpeed : 1.0;
 
-        console.log(`Animation speed: ${animationSpeed}, Time before end: ${timeBeforeEnd}`);
-
         if ((isForward || isBackward) && timeBeforeEnd > 0) {
           
-          console.log(`Waiting ${timeBeforeEnd}ms before stopping move`);
           this.timerWalk = setTimeout(() => {
             this.keys[key] = false;
             this.isMoving = false;
             this.doubleClickThreshold = 0;
-            this.startTimeAnimation  = null; 
-            console.log('Movement stopped after waiting period');
+            this.startTimeAnimation  = null;
 
           }, timeBeforeEnd / animationSpeed);
 
@@ -235,9 +218,7 @@ export class CharacterController {
     if (!this.model)
       return;
 
-    if (debug) console.log('Current camera mode:', this.camera.cameraMode);
     const newMode = this.camera.toggleCameraMode();
-    if (debug) console.log('New camera mode:', newMode);
 
     if (newMode === 'firstPerson') {
       const fpPosition = [0, 0, 0];
@@ -379,7 +360,6 @@ export class CharacterController {
     } else {
       walkMultiplierPhase = 1.0;
     }
-    if (debug) console.log(`[${this.model.name}] Walk multiplier: ${walkMultiplier}, Phase: ${walkMultiplierPhase}, Animation type: ${this.model.currentAnimation.name}`);
 
     if (walkMultiplierPhase > 1.0) {
       walkMultiplierPhase = 1.0;
@@ -441,9 +421,6 @@ export class CharacterController {
     if (!this.model)
       return;
 
-    if (debug) console.log(`[${this.model.name}] Setting animation to: ${animationName}`);
-
-    
     if (animationName === 'StandToSit') {
       const offset = 6.1;
 

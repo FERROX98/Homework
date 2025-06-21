@@ -16,7 +16,7 @@ export class GradientSky extends BaseModel {
       console.log(`[${this.name}] Resolved shaders:`, shadersPath);
       utils.initShader(gl, shadersPath.vs, shadersPath.fs).then(program => {
         if (program) {
-          console.log(`[${this.name}] shader initialized:`, program);
+
           this.program = program;
           this.initGeometry();
           this.isLoaded = true;

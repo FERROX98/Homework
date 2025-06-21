@@ -123,11 +123,11 @@ export class Model extends BaseModel {
     const gl = this.gl;
     gl.useProgram(this.program);
     
-    const attributes = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
-    for (let i = 0; i < attributes; i++) {
-      const attribute = gl.getActiveAttrib(this.program, i);
-      console.log(`[${this.name}] Attribute ${i}:`, attribute.name, attribute.type);
-    }
+    //const attributes = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
+    // for (let i = 0; i < attributes; i++) {
+    //   const attribute = gl.getActiveAttrib(this.program, i);
+    //   console.log(`[${this.name}] Attribute ${i}:`, attribute.name, attribute.type);
+    // }
 
     for (const buffers of this.buffersList) {
       this.initBuffer(buffers, buffers);
@@ -141,7 +141,7 @@ export class Model extends BaseModel {
       && this.animationIndexSelected !== null
       && this.animationTracks.size > 0) {
 
-      if (debug) console.warn(`[${this.name}] Updating animation...`);
+
 
       if (!this.startTime) {
         this.startTime = performance.now();
@@ -169,8 +169,7 @@ export class Model extends BaseModel {
     const modelMatrix = transform || this.modelMatrix;
 
     this.onPreDraw(modelMatrix, proj, view, lights, this.uniforms);
-    // if (Math.random() < 0.01)  
-    //   console.log(`[${this.name}] lights:`, lights);
+
     
     let triangleCount = 0;
     if (this.animated)
@@ -181,16 +180,7 @@ export class Model extends BaseModel {
         TextureUtils.bindTexture(this, buffers.textures);
 
       this.onDraw(buffers);
-      // this.bindAndEnableBuffers(buffers.vertPosLoc, buffers.vertPosBuffer, 3);
-      // this.bindAndEnableBuffers(buffers.normalLoc, buffers.normalBuffer, 3);
-      // this.bindAndEnableBuffers(buffers.texCoordLoc, buffers.texCoordBuffer, 2);
 
-      // if (buffers.jointLoc !== -1 && buffers.jointBuffer) {
-      //   this.bindAndEnableBuffers(buffers.jointLoc, buffers.jointBuffer, 4);
-      // }
-      // if (buffers.weightLoc !== -1 && buffers.weightBuffer) {
-      //   this.bindAndEnableBuffers(buffers.weightLoc, buffers.weightBuffer, 4);
-      // }
 
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indexBuffer);
       gl.drawElements(gl.TRIANGLES, buffers.indexCount, gl.UNSIGNED_SHORT, 0);

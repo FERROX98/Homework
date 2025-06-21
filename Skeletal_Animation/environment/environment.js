@@ -78,7 +78,6 @@ export class Environment {
     const transform = this.computeTransformMatrix(position, rotation, scale);
 
     this.modelTransforms.set(model, transform);
-    console.log(`Added model ${model.name} to environment with transform:`, transform);
     
     if (this.onModelsUpdated) {
       this.onModelsUpdated();
@@ -122,12 +121,11 @@ export class Environment {
  
     for (const [model, transform] of this.modelTransforms) {
       if (!model.isVisible) {
-        if (debug) console.warn(`Model ${model.name} is not visible, skipping render.`);
+
         continue;
       }
 
       if (transform){
-        if (debug) console.log(`Rendering model ${model.name} with transform:`, transform);
         trianglesCount += model.render(proj, view, lights, transform);
       }
     }
@@ -147,7 +145,6 @@ export class Environment {
   setModelVisibility(model, isVisible) {
     if (this.modelTransforms.has(model)) {
       model.isVisible = isVisible;
-      console.log(`Model ${model.name} visibility set to ${isVisible}`);
     }
   }
 
@@ -202,6 +199,6 @@ export class Environment {
       [this.lightScale, this.lightScale, this.lightScale]
     );
     
-    console.log('pointLight model loaded');
+
   }
 }

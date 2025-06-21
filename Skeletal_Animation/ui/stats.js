@@ -55,7 +55,6 @@ export class Stats {
 
     // update at each second
     if (time - this.lastFpsUpdate >= 1000) {
-      //   console.log('Updating FPS:', this.frameCount, 'frames in', time - this.lastFpsUpdate, 'ms');
 
       this.fps = this.frameCount;
 

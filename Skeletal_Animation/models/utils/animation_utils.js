@@ -117,7 +117,7 @@ export class AnimationUtils {
     if (!model instanceof Model)
       throw new Error("model must be an instance of Model");
 
-    if (debug) console.log(`[${model.name}] Configuring animation data...`);
+
     const json = model.json;
     const bin = model.bin;
 
@@ -129,7 +129,7 @@ export class AnimationUtils {
     const animPreproc = []
 
     //  Keyframe
-    if (debug) console.log(`[${model.name}] has ${json.animations.length} animations`, json.animations.map(a => a.name || "none"));
+
     for (const animation of json.animations) {
       const animData = {};
 
@@ -137,7 +137,7 @@ export class AnimationUtils {
       const animationTracks = new Map();
       let animationLength = 0;
 
-      if (debug) console.log(`processing: ${animation.name || "default"}`);
+
 
       // channel tell us which node to animate and which sampler(keyframe interval) to use and the type of transformation
       for (const channel of animation.channels) {
@@ -180,7 +180,7 @@ export class AnimationUtils {
           outputAccessor.count * numComponentsOutput
         );
 
-        if (debug) console.log(`[${model.name}] Animation track for node ${nodeIndex} at path ${path}:`, inputArray, outputArray);
+
         if (!animationTracks.has(nodeIndex)) {
           animationTracks.set(nodeIndex, {});
         }
@@ -249,13 +249,13 @@ export class AnimationUtils {
       return false;
     }
 
-    if (debug) console.log(`[${this.name}] Updating animation at time: ${t.toFixed(2)}s for model: ${model.name}`, model.currentAnimation);
+
 
     // check switccg
     if (model.animationLength > 0 && t >= model.animationLength) {
       const switched = model.switchAnimation();
       if (switched) {
-        if (debug) console.warn(`[${model.name}] Animation completed ${model.currentAnimation.name} switching to next animation. ${t}`);
+
         
         let now = performance.now();
         let elapsedSeconds = (now - model.startTime) / 1000;
@@ -278,7 +278,6 @@ export class AnimationUtils {
       //  track: transformation values
       const track = model.animationTracks.get(nodeIndex);
       if (!track) {
-        if (debug) console.warn(`[${model.name}] No animation track found for node (bone) ${nodeIndex}`);
         continue;
       }
 
@@ -299,7 +298,7 @@ export class AnimationUtils {
       const T = mat4.create();
       const R = mat4.create();
       const S = mat4.create();
-      // SRT * V
+      // TRS * V
       mat4.fromTranslation(T, translation);
       mat4.fromQuat(R, rotation);
       mat4.fromScaling(S, scale);

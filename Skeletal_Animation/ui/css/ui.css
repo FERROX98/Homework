@@ -6,48 +6,9 @@ html, body {
 }
 
 
-#ui-panel {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 15px;
-  border-radius: 8px;
-  color: white;
-  max-width: 300px;
-  max-height: calc(100vh - 20px);
-  overflow-y: auto;
-  box-sizing: border-box;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  transition: transform 0.3s ease-in-out;
-}
 
-#ui-panel.minimized {
-  transform: translateX(-100%);
-}
 
-#left-button-panel {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  z-index: 1002;
-  transition: all 0.3s ease;
-}
 
-#left-button-panel.floating {
-  background: rgba(0, 120, 255, 0.9);
-}
-
-#left-button-panel:hover {
-  background: rgba(0, 120, 255, 1);
-}
 
 #stats-container {
   position: fixed;
@@ -405,9 +366,6 @@ input[type="range"]::-moz-range-thumb {
   display: block;
 }
 
-.animation-description {
-  display: none;
-}
 
 
 .checkbox-container {
@@ -452,7 +410,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .checkbox-container input:checked ~ .checkmark:after {
-  display: block;
+  display: flex;
 }
 
 .checkbox-container .checkmark:after {
@@ -488,25 +446,31 @@ input[type="range"]::-moz-range-thumb {
   background: #3e8e41;
 }
 
-#controlsContainer {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 10px;
-    border-radius: 5px;
-    color: white;
-    font-family: Arial, sans-serif;
-    z-index: 1000;
-}
-
-#controlsContainer h3 {
-  margin: 0 0 10px 0;
-}
-#controlsContainer label {
-  margin-left: 5px;
-}
-#attenuation-factor {
+#attenuation-range {
   width: 100%;
   margin-top: 5px;
+}
+
+#attenuation-range-control {
+  width: 100%;
+  margin-top: 5px;
+}
+
+.hdr-controls,
+.attenuation-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hdr-controls label,
+.attenuation-controls label {
+  display: block;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  color: white;
+  margin-bottom: 15px;
 }

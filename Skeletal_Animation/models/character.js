@@ -40,14 +40,14 @@ export class Character extends Model {
     this.isMovingBackward = !forward;
     this.resetAllAnimationObjects();
 
-    if(debug) console.log(`[${this.name}] Setting ${this.currentWalkType} start walk animation: ${forward ? 'forward' : 'backward'}`);
+
     if (forward) {
       const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).start;
-      if (debug) console.log(`[${this.name}] Setting ${this.currentWalkType} start walk animation: ${walkKey}`);
+
       this.setAnimation(walkKey);
     } else {
       const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).revStart;
-      if (debug) console.log(`[${this.name}] Setting ${this.currentWalkType} start reverse walk animation: ${walkKey}`);
+
       this.setAnimation(CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).revStart);
     }
   }
@@ -61,11 +61,11 @@ export class Character extends Model {
 
     if (forward) {
       const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).end;
-      if (debug) console.log(`[${this.name}] Setting ${this.currentWalkType} end walk animation: ${walkKey}`);
+
       this.setAnimation(walkKey);
     } else {
       const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).revEnd;
-      if (debug) console.log(`[${this.name}] Setting ${this.currentWalkType} end reverse walk animation: ${walkKey}`);
+
       this.setAnimation(CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).revEnd);
     }
   }
@@ -82,15 +82,15 @@ export class Character extends Model {
           this.resetAllAnimationObjects();
 
     if (this.currentAnimation.next) {
-      if (debug) console.log(`[${this.name}] Switching from ${this.currentAnimation.name} to next animation: ${this.currentAnimation.next}`);
+
       let anim = null;
 
       if (CharacterAnimations.isWalkAnimation(this.currentAnimation.next)) {
         anim = CharacterAnimations.getWalkAnimationByName(this.currentAnimation.next);
-        if (debug) console.log(`[${this.name}] WalkAnimation ${this.currentAnimation.next} set.`);
+
       } else {
         anim = CharacterAnimations.getAnimationByName(this.currentAnimation.next);
-        if (debug) console.log(`[${this.name}] Animation ${this.currentAnimation.next} set.`);
+
       }
 
       if (anim) {
@@ -100,7 +100,7 @@ export class Character extends Model {
         this.setAnimation('Idle');
       }
 
-    } else if (debug) {
+    } else {
       console.warn(`[${this.name}] looping ${this.currentAnimation.name}.`);
       //this.setAnimation('Idle');
     }
@@ -110,14 +110,14 @@ export class Character extends Model {
   }
 
   setAnimation(animationName) {
-    if (debug) console.log(`[${this.name}] Setting animation: ${animationName}`);
+
 
     this.currentAnimation = CharacterAnimations.getAnimationByName(animationName);
     if (!this.currentAnimation) {
       console.error(`[${this.name}] Animation ${animationName} not found.`);
       this.currentAnimation = CharacterAnimations.getAnimationByName('Idle');
     }
-    if (debug) console.log(`[${this.name}] Current animation set to: ${this.currentAnimation.name} (index: ${this.currentAnimation.index})`);
+
     this.selectAnimation(this.currentAnimation.index);
   }
 }

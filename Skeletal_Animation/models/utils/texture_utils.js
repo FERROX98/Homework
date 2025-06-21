@@ -100,7 +100,7 @@ export class TextureUtils {
             };
 
             img.onerror = (err) => {
-                console.warn(`[${model.name}] Error loading texture: ${url}`, err);
+
 
                 const tex = TextureUtils.mockedTexture(model, url);
 
@@ -127,7 +127,7 @@ export class TextureUtils {
     static computeBitangent(model, normal, tangent) {
 
         if (!tangent || tangent.length === 0) {
-            console.warn(`[${model.name}] No tangent data found for primitive`);
+
             return null;
         }
         let bitangent = null;
@@ -191,7 +191,6 @@ export class TextureUtils {
         const mat = json.materials[matIdx] || {};
         const pbr = mat.pbrMetallicRoughness || {};
 
-        console.warn(`[${model.name}] Loading from glTF:`, json);
         const getTex = async (texInfo) => {
                const tex = json.textures[texInfo.index];
                 const img = json.images[tex.source];

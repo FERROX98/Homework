@@ -55,7 +55,7 @@ export class Wall {
         }
       };
       checkLoaded();
-     // console.log(`Loading wall model: ${this.modelPath} at position ${config.translation}, scale: ${config.scale}`);
+
     }
   }
 
