@@ -100,10 +100,7 @@ export class Character extends Model {
         this.setAnimation('Idle');
       }
 
-    } else {
-      console.warn(`[${this.name}] looping ${this.currentAnimation.name}.`);
-      //this.setAnimation('Idle');
-    }
+    }  
     
     if (debug && switched) console.log(`[${this.name}] Animation switched to: ${this.currentAnimation.name} (switched : ${switched})`);
     return switched;
