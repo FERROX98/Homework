@@ -9,7 +9,7 @@ export class CharacterController {
 
   constructor(model, environment, camera) {
     this.model = model;
-    this.model.onLoaded();
+
     this.environment = environment;
     this.cameraControls = new CameraControls();
     this.camera = camera;
@@ -145,7 +145,7 @@ export class CharacterController {
           otherKeysPressed.forEach(k => this.keys[k] = false); 
         }
 
-        // if there is a double click detected, ignore the movement till the end of the animation
+        // if there is a double click ignore the movement till the end of the animation
         const now = performance.now();  
         
         if ((isForward ||isBackward) && this.startTimeAnimation  && (now - this.startTimeAnimation  < this.doubleClickThreshold)) {
@@ -360,8 +360,6 @@ export class CharacterController {
         if (this.isPositionValid(newPosZ)) {
           this.position[2] = newPosZ[2];
         }
-
-     //   console.log('Movement blocked by boundary limits');
       }
     }
 

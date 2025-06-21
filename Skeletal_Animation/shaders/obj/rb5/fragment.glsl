@@ -21,51 +21,6 @@ const float minLayers = 10.0;
 const float maxLayers = 10.0;
 const float height_scale = 0.00001;
 
-// Funzioni PBR
-vec2 ParallaxMappingSimplified(vec2 texCoords, vec3 viewDir) {
-  float height = texture2D(dispTex, texCoords).r;
-  vec2 p = viewDir.xy / viewDir.z * (height * 1.1);
-  return texCoords - p;
-}
-
-vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir) {
-  const int maxSteps = 20;
-
-  float numLayers = mix(maxLayers, minLayers, max(dot(vec3(0.0, 0.0, 1.0), viewDir), 0.0));
-  float layerDepth = 1.0 / numLayers;
-  
-  float currentLayerDepth = 0.0;
-  vec2 P = viewDir.xy * height_scale;
-  vec2 deltaTexCoords = P / numLayers;
-  vec2 currentTexCoords = texCoords;
-  float currentDepthMapValue = texture2D(dispTex, currentTexCoords).r;
-
-  for(int i = 0; i < maxSteps; ++i) {
-    if(i >= int(numLayers))
-      break;
-
-    if(currentLayerDepth >= currentDepthMapValue) {
-      break;
-    }
-    currentTexCoords -= deltaTexCoords;
-    currentDepthMapValue = texture2D(dispTex, currentTexCoords).r;
-    currentLayerDepth += layerDepth;
-  }
-
-    // get texture coordinates before collision (reverse operations)
-  vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
-
-    // get depth after and before collision for linear interpolation
-  float afterDepth = currentDepthMapValue - currentLayerDepth;
-  float beforeDepth = texture2D(dispTex, prevTexCoords).r - currentLayerDepth + layerDepth;
-
-    // interpolation of texture coordinates
-  float weight = afterDepth / (afterDepth - beforeDepth);
-  vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
-
-  return finalTexCoords;  
-}
-
 float rimEffect(vec3 normal, vec3 viewDir) {
   float rimDot = 1.0 - max(dot(viewDir, normal), 0.0);
   return pow(rimDot, 3.0);
@@ -98,24 +53,26 @@ void main() {
   vec3 viewDir = vec3(TangentViewPos - TangentFragPos);
   vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
 
-  vec2 texCoordsDisp = ParallaxMapping(texCoords, viewDir);
-  if(texCoordsDisp.x > 1.0 || texCoordsDisp.y > 1.0 || texCoordsDisp.x < 0.0 || texCoordsDisp.y < 0.0) {
-    gl_FragColor = vec4(0.0);
-    return;
-  }
+  vec2 texCoordsDisp = texCoords; //ParallaxMapping(texCoords, viewDir);
+  // if(texCoordsDisp.x > 1.0 || texCoordsDisp.y > 1.0 || texCoordsDisp.x < 0.0 || texCoordsDisp.y < 0.0) {
+  //   gl_FragColor = vec4(0.0);
+  //   return;
+  // }
 
   vec3 albedo;
   vec3 normalMap;
-  float metallic;
+  float metallic = 0.0; // metallic is not used in this shader
   float roughness;
   float ao = 1.0;
 
   // from RGBs to linear space
-  albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
+  //albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
+    albedo = pow(texture2D(albedoMap, texCoordsDisp).rgb, vec3(2.2));
+
   normalMap = texture2D(normalTex, texCoordsDisp).rgb;
-  metallic = texture2D(metallicMap, texCoordsDisp).r;
-  roughness = texture2D(roughnessMap, texCoordsDisp).r;
-  ao = texture2D(aoMap, texCoordsDisp).r; 
+  //metallic = texture2D(metallicMap, texCoordsDisp).r;
+  roughness =  0.05527864098548889; //texture2D(roughnessMap, texCoordsDisp).r;
+  //ao = texture2D(aoMap, texCoordsDisp).r; 
 
   normalMap = normalize(normalMap * 2.0 - 1.0);
   vec3 N = normalize(normalMap);

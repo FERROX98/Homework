@@ -40,7 +40,7 @@
 				1,
 				1
 			],
-			"emissiveTexture":{
+			"baseColorTexture":{
 				"index":0
 			},
 			"extensions":{

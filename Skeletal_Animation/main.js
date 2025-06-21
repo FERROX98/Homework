@@ -66,7 +66,7 @@ export class Main {
   }
 
   setupCharacterController(model, renderer, env) {
-    if (!model || model.isLoaded ) {
+    if (model || model.isLoaded ) {
       console.log(`Setting up character controller ${model.name}`);
 
       const characterController = new CharacterController(model, env, renderer.camera);

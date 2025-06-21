@@ -98,15 +98,15 @@ void main() {
   vec3 viewDir = vec3(TangentViewPos - TangentFragPos);
   vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
 
-  vec2 texCoordsDisp = ParallaxMapping(texCoords, viewDir);
-  if(texCoordsDisp.x > 1.0 || texCoordsDisp.y > 1.0 || texCoordsDisp.x < 0.0 || texCoordsDisp.y < 0.0) {
-    gl_FragColor = vec4(0.0);
-    return;
-  }
+  vec2 texCoordsDisp = texCoords;//ParallaxMapping(texCoords, viewDir);
+  // if(texCoordsDisp.x > 1.0 || texCoordsDisp.y > 1.0 || texCoordsDisp.x < 0.0 || texCoordsDisp.y < 0.0) {
+  //   gl_FragColor = vec4(0.0);
+  //   return;
+  // }
 
   vec3 albedo;
   vec3 normalMap;
-  float metallic;
+  float metallic =0.0;
   float roughness;
   float ao = 1.0;
 

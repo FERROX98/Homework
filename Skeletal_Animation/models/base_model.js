@@ -1,5 +1,7 @@
 
 import { vec3, mat3, mat4, vec4 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
+import { TextureUtils } from './utils/texture_utils.js';
+
 const debug = false;
 
 export class BaseModel {
@@ -7,7 +9,6 @@ export class BaseModel {
         this.gl = gl;
     }
     
-    // shader selected
     toggleTextures(enable) {
         const gl = this.gl;
         gl.useProgram(this.program);
@@ -16,24 +17,23 @@ export class BaseModel {
             enable ? 1 : 0);
     }
 
-    // no shader selection
     bindAndSetBuffer(data, buffer, typeElement = this.gl.ARRAY_BUFFER, typeDraw = this.gl.STATIC_DRAW) {
-        // buffers are global WebGL state no need to recall gl.useProgram
         const gl = this.gl;
         gl.useProgram(this.program);
-        if (!buffer || !data)
+        if (!buffer || !data){
+            console.error(`[${this.name}] No buffer or data to bind`,  data,buffer);
             return; 
+        }
         // select the buffer
         gl.bindBuffer(typeElement, buffer);
         // insert data into buffer
         gl.bufferData(typeElement, data, typeDraw);
+
     }
 
-    // shader selected 
     bindAndEnableBuffers(location, buffer, size, type = this.gl.FLOAT) {
         const gl = this.gl;
         gl.useProgram(this.program);
-
         if (buffer && location !== -1) {
             // select 
             gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -42,15 +42,14 @@ export class BaseModel {
             // activate
             gl.enableVertexAttribArray(location);
         } else if (location === -1) {
-            if (debug) console.warn('Trying bind buffer to invalid src', this.name);
+            console.warn('Trying bind buffer to invalid src', this.name);
         }
     }
     
-    // shader selected
-    onPreDraw(modelMatrix, proj, view, lights, uniforms) {
+    // shader selected (dest can be this or buffer)
+    onPreDraw( modelMatrix, proj, view, lights, uniforms) {
         const gl = this.gl;
         gl.useProgram(this.program);
-        
         // vertex
         gl.uniformMatrix4fv(uniforms.projection, false, proj);
         gl.uniformMatrix4fv(uniforms.view, false, view);
@@ -70,7 +69,9 @@ export class BaseModel {
         vec4.transformMat4(lightPositionViewSpace, lightPositionViewSpace, view);
         
         // fragment uniforms
+        // not used
         gl.uniform4fv(uniforms.dirLightDir, lightDirViewSpace);
+       
         gl.uniform4fv(uniforms.dirLightColor, lights.dirLightColor);
         gl.uniform4fv(uniforms.ambientLight, lights.ambientLight);
         gl.uniform1f(uniforms.ambientIntensity, lights.ambientIntensity);
@@ -78,7 +79,7 @@ export class BaseModel {
 
         // from local to view space
         const modelViewMatrix = mat4.create();
-        mat4.multiply(modelViewMatrix, modelMatrix, view);
+        mat4.multiply(modelViewMatrix,view, modelMatrix );
 
         const normalMatrix = mat3.create();
         mat3.fromMat4(normalMatrix, modelViewMatrix);
@@ -86,7 +87,51 @@ export class BaseModel {
         mat3.transpose(normalMatrix, normalMatrix);
         
         gl.uniformMatrix3fv(uniforms.normalMatrix, false, normalMatrix);
+
     }
+
+
+    // shader selected
+    onDraw(src){
+        const gl = this.gl;
+        // only loc & buffer
+        gl.useProgram(this.program);
+
+        if (this.texturesLoaded)
+            TextureUtils.bindTexture(this, src.textures);
+
+        if (src.vertLoc !== -1 && src.vertBuffer)
+            this.bindAndEnableBuffers(src.vertLoc, src.vertBuffer, 3);
+        else 
+            console.warn(`[${this.name}] No vertex position`, src.vertLoc, src.vertBuffer);
+
+        if (src.vertNormalLoc !== -1 && src.vertNormalBuffer)
+            this.bindAndEnableBuffers(src.vertNormalLoc, src.vertNormalBuffer, 3);
+        //else
+          //  console.warn(`[${this.name}] No vertex normal`, src.vertNormalLoc, src.vertNormalBuffer);
+       
+        if (src.vertTexCoordsLoc !== -1 && src.vertTexCoordsBuffer)
+            this.bindAndEnableBuffers(src.vertTexCoordsLoc, src.vertTexCoordsBuffer, 2);
+       // else
+           // console.warn(`[${this.name}] No vertex texture coords`, src.vertTexCoordsLoc, src.vertTexCoordsBuffer);
+
+        if (src.vertTangentLoc !== -1 && src.vertTangentBuffer)
+            this.bindAndEnableBuffers(src.vertTangentLoc, src.vertTangentBuffer, 3);
+     //   else
+        //    console.warn(`[${this.name}] No vertex tangent`, src.vertTangentLoc, src.vertTangentBuffer);
+
+        if (src.jointLoc !== -1 && src.jointBuffer) 
+            this.bindAndEnableBuffers(src.jointLoc, src.jointBuffer, 4);
+       // else
+          //  console.warn(`[${this.name}] No joint attribute`, src.jointLoc, src.jointBuffer);
+
+        if (src.weightLoc !== -1 && src.weightBuffer) 
+            this.bindAndEnableBuffers(src.weightLoc, src.weightBuffer, 4);
+       // else
+            //console.warn(`[${this.name}] No weight attribute`, src.weightLoc, src.weightBuffer);
+        
+
+    }   
 
     initUniformsLocations() {
         const gl = this.gl;
@@ -105,9 +150,69 @@ export class BaseModel {
 
           normalMatrix: gl.getUniformLocation(program, 'normalMatrix'),
           isTextureEnabled: gl.getUniformLocation(program, 'isTextureEnabled'),
+
+          jointMatrices: gl.getUniformLocation(program, 'jointMatrices')
+
         };
     }
 
+    // shader selected 
+  initBuffer(src, dest) {
+    const gl = this.gl;
+    gl.useProgram(this.program);
 
+    console.warn(`[${this.name}] Initializing buffers for model:`, src, dest);
+
+    // loc & src & buffer
+    dest.vertLoc = gl.getAttribLocation(this.program, 'position');
+    if (dest.vertLoc === -1 || !src.positions)
+      console.error(`[${this.name}] Failed attribute position`);
+    // Position
+    dest.vertBuffer = gl.createBuffer();
+    this.bindAndSetBuffer(src.positions, dest.vertBuffer, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+
+    dest.vertNormalLoc = gl.getAttribLocation(this.program, 'normal');
+    if (dest.vertNormalLoc === -1 || !src.normals)
+      console.error(`[${this.name}] Failed attribute normal`, src.normals, dest.vertNormalLoc);
+    // Normal
+    dest.vertNormalBuffer = gl.createBuffer();
+    this.bindAndSetBuffer(src.normals, dest.vertNormalBuffer, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+   
+    dest.vertTexCoordsLoc = gl.getAttribLocation(this.program, 'textureCoords');
+    if (dest.vertTexCoordsLoc === -1 || !src.textureCoords)
+      console.error(`[${this.name}] Failed attribute textureCoords`, src.textureCoords, dest.vertTexCoordsLoc);
+    // Texture
+    dest.vertTexCoordsBuffer = gl.createBuffer();
+    this.bindAndSetBuffer(src.textureCoords, dest.vertTexCoordsBuffer, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+    
+    dest.vertTangentLoc = gl.getAttribLocation(this.program, 'tangent');
+    if (dest.vertTangentLoc === -1 || !src.tangents)
+      console.error(`[${this.name}] Failed attribute tangent`, src.tangents, dest.vertTangentLoc);
+    // Tangent
+    dest.vertTangentBuffer = gl.createBuffer();
+    this.bindAndSetBuffer(src.tangents, dest.vertTangentBuffer, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+    
+    dest.jointLoc = gl.getAttribLocation(this.program, 'joints');
+    if (src.joints && dest.jointLoc !== -1) {
+        dest.jointBuffer = gl.createBuffer();
+        this.bindAndSetBuffer(src.joints, dest.jointBuffer);
+    } else {
+        console.warn(`[${this.name}] No joint attribute `, src.joints, dest.jointLoc);
+    }
+    
+    dest.weightLoc = gl.getAttribLocation(this.program, 'weights');
+    if (src.weights && dest.weightLoc !== -1) {  
+        dest.weightBuffer = gl.createBuffer();
+        this.bindAndSetBuffer(src.weights, dest.weightBuffer);
+    } else {
+        console.warn(`[${this.name}] No weight attribute `, src.weights, dest.weightLoc);
+    }
+    
+
+    dest.indexBuffer = gl.createBuffer();
+    this.bindAndSetBuffer(src.indices, dest.indexBuffer, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+
+    dest.indexCount = src.indexCount;
+ }
     
 }

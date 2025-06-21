@@ -83,10 +83,11 @@ export class GLTFUtils {
         const bufferViews = model.bufferViews;
         const bin = model.bin;
 
-        //  tells which bufferView contains the pointer to the bin file
+        //  tells which bufferView contains the data in the bin file
         const bufferViewsIndex = accessor.bufferView;
-        if (bufferViewsIndex === undefined) 
-            console.warn(`[${model.name}] ${accessor.name} no bufferView defined`);
+        if (bufferViewsIndex === undefined) {
+            throw new Error(`[${accessor.name}] Accessor  does not have a bufferView`);
+        }
 
         // Get the bufferView from the bufferViews array
         const bufferView = bufferViews[bufferViewsIndex];
@@ -164,19 +165,20 @@ export class GLTFUtils {
 
         // joint all scene 
         // for all obj (like cup of tea) retrieve vertex and data (triangle) and store in the buffer
+        // mantenuto solo per futuri sviluppi, al momento ho mergiato tutte le primitive sotto lo stesso 
+        // oggetto in blender
         for (const primitive of allPrimitives) {
             if (debug) console.log(`[${model.name}] Processing primitive:`, primitivesCount++);
 
-            // vertex position 
+            // vertex positions 
             const position = this.getDataFromPrimitive('POSITION', model, primitive);
 
             const normal = this.getDataFromPrimitive('NORMAL', model, primitive);
             const texcoord = this.getDataFromPrimitive('TEXCOORD_0', model, primitive);
+            // informatin about joints that influence the vertex
             let joints = this.getDataFromPrimitive('JOINTS_0', model, primitive);
             const weights = this.getDataFromPrimitive('WEIGHTS_0', model, primitive);
             const tangent = this.getDataFromPrimitive('TANGENT', model, primitive);
-            //const bitangent = TextureUtils.computeBitangent(model, normal, tangent);
-            
             // Convert in order to avoid issues with gl1 (TODO check if with gl2 can be solved)
             if (joints && !(joints instanceof Float32Array)) {
                 joints = new Float32Array(joints);
@@ -197,44 +199,18 @@ export class GLTFUtils {
             if (matIdx === undefined) {
                 console.warn(`[${model.name}] No material, using default`);
             }
-
-            const mat = json.materials[matIdx] || {};
-            const pbr = mat.pbrMetallicRoughness || {};
-
-            //console.log(`[${model.name}] Processing material ${matIdx}:`, mat.name || 'unnamed');
-
-            const getTex = async (texInfo) => {
-                try {
-                    console.log(`[${model.name}] Loading texture:`, texInfo);
-                    const tex = json.textures[texInfo.index];
-                    const img = json.images[tex.source];
-                    const uri = `models/assets/textures/${model.name}/` + img.uri;
-                    const texture = await TextureUtils.loadTextureImage(model, uri);
-                    return texture;
-                } catch (error) {
-                    console.warn(`[${model.name}] Failed to load texture:`, error.message);
-                    return await TextureUtils.loadTextureImage(model, 'mock');
-
-                }
-            };
-
-            const textures = {
-                color: pbr.baseColorTexture ? await getTex(pbr.baseColorTexture) : null,
-                normal: mat.normalTexture ? await getTex(mat.normalTexture) : null,
-                metal: pbr.metallicRoughnessTexture ? await getTex(pbr.metallicRoughnessTexture) : null,
-                rough: pbr.rough ? await getTex(pbr.rough) : null,
-                ao: pbr.occlusionTexture ? await getTex(pbr.occlusionTexture) : null,
-                disp: pbr.displacementTexture ? await getTex(pbr.displacementTexture) : null
-            };
+            
+            const basePath = `models/assets/textures/${model.name}/`;
+            const textures = model.loadTexFromGlTF ?
+                            await TextureUtils.getTexturesFromGltf(model, json) : await TextureUtils.loadTextures(model, basePath);
 
             model.buffersList.push({
                 positions: position,
                 normals: normal,
-                texCoords: texcoord,
+                textureCoords: texcoord,
                 joints: joints,
                 weights: weights,
                 tangents: tangent,
-              //  bitangents: bitangent,
                 indices: indices,
                 indexCount: indexAcc.count,
                 textures: textures

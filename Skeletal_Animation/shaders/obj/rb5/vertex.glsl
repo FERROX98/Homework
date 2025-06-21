@@ -1,14 +1,10 @@
 precision highp float;
-
 attribute vec3 position;
 attribute vec2 textureCoords;
-attribute vec4 weights;
-attribute vec4 joints; 
-attribute vec3 normal;
+attribute vec3 normal; 
 attribute vec3 tangent;
 //attribute vec3 bitangent;
 
-uniform mat4 jointMatrices[100];
 uniform mat4 projection, view, model;
 uniform mat3 normalMatrix;
 uniform vec3 lightPosition;
@@ -17,18 +13,24 @@ varying vec2 texCoords;
 varying vec3 TangentLightPos;
 varying vec3 TangentViewPos;
 varying vec3 TangentFragPos;
+attribute vec4 weights;
+// for each vertes the index of which bones influence it
+attribute vec4 joints; 
+
+
+uniform mat4 jointMatrices[100];
 
 
 void main() {
-    float total = weights.x + weights.y + weights.z + weights.w;
-
+    float total = max(0.001, weights.x + weights.y + weights.z + weights.w);
     float normWeights = 1.0 / total; 
 
-    mat4 skinMatrix =
-        normWeights * weights.x  *jointMatrices[int(joints.x)] +
-        normWeights * weights.y  *jointMatrices[int(joints.y)] + 
-        normWeights * weights.z  *jointMatrices[int(joints.z)]+
-        normWeights * weights.w  *jointMatrices[int(joints.w)];
+    mat4 skinMatrix = 
+            normWeights * weights.x * jointMatrices[int(joints.x)] +
+            normWeights * weights.y * jointMatrices[int(joints.y)] + 
+            normWeights * weights.z * jointMatrices[int(joints.z)] +
+            normWeights * weights.w * jointMatrices[int(joints.w)];
+    
 
     texCoords = textureCoords;
     
@@ -41,7 +43,7 @@ void main() {
     // from world to view space
     vec3 vFragPosViewSpace = vec3(view * vFragPosWorldSpace);
 
-    // from model to view space
+    // from local to view space
     vec3 N = normalize(normalMatrix * normal);
     vec3 T = normalize(normalMatrix * tangent);
     
@@ -65,8 +67,7 @@ void main() {
     // in view space the camera is at origin
     TangentViewPos = TBN * vec3(0.0, 0.0, 0.0); 
     
-    texCoords = textureCoords;
-
     // from view to canonical view volume
-    gl_Position = projection * view * vFragPosWorldSpace;
+    gl_Position = projection * view * vFragPosWorldSpace ;
 }
+ 

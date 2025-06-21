@@ -5,18 +5,23 @@ const debug = false;
 
 export class Character extends Model {
   constructor(gl, modelPath, animated = false, visible = true) {
+
     super(gl, modelPath, animated, visible);
+        
+
     this.currentAnimation = null;
     this.chair = null;
 
     this.isMovingForward = false;
     this.isMovingBackward = false;
     this.animationSpeed = 1; 
-    this.onLoaded = () => {
-      this.setAnimation('Idle');
-    };
+   
 
     this.currentWalkType = 'normal';
+  }
+
+  onLoaded() {
+    this.setAnimation('Idle');
   }
 
   get isMoving() {
@@ -24,6 +29,8 @@ export class Character extends Model {
   }
 
   getAnimationSpeed() {
+    if (this.currentAnimation === null) 
+      return this.animationSpeed;
     const animSpeed = this.animationSpeed * CharacterAnimations.getAnimationSensitivity(this.currentAnimation.name);
     return animSpeed;
   }
@@ -106,7 +113,10 @@ export class Character extends Model {
     if (debug) console.log(`[${this.name}] Setting animation: ${animationName}`);
 
     this.currentAnimation = CharacterAnimations.getAnimationByName(animationName);
-  
+    if (!this.currentAnimation) {
+      console.error(`[${this.name}] Animation ${animationName} not found.`);
+      this.currentAnimation = CharacterAnimations.getAnimationByName('Idle');
+    }
     if (debug) console.log(`[${this.name}] Current animation set to: ${this.currentAnimation.name} (index: ${this.currentAnimation.index})`);
     this.selectAnimation(this.currentAnimation.index);
   }

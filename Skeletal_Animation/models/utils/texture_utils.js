@@ -4,11 +4,39 @@ const debug = false;
 
 export class TextureUtils {
 
-    // no shader selection
+    static async loadTextures(mode,basePath) {
+        const gl = mode.gl;
+        gl.useProgram(mode.program);
+
+        const [color, normal, rough, metal, ao, disp, emiss] = await Promise.all([
+            TextureUtils.loadTextureImage(mode, basePath+'diff.jpg'),
+            TextureUtils.loadTextureImage(mode, basePath+'nor.jpg'),
+            TextureUtils.loadTextureImage(mode, basePath+'rough.jpg'),
+            TextureUtils.loadTextureImage(mode, basePath+'met.jpg'),
+            TextureUtils.loadTextureImage(mode, basePath+'ao.jpg'),
+            TextureUtils.loadTextureImage(mode, basePath+'disp.jpg'),
+            TextureUtils.loadTextureImage(mode, basePath+'emiss.jpg')
+
+        ]);
+        
+        return {
+            color: color,
+            normal: normal,
+            metal: metal,
+            rough: rough,
+            ao: ao,
+            disp: disp,
+            emiss: emiss
+        };
+        
+    }
+        
     static async loadTextureImage(model, url) {
         if (!model instanceof Model)
             throw new Error("model must be an instance of Model");
+
         const gl = model.gl;
+        gl.useProgram(model.program);
         return new Promise((resolve, reject) => {
             const tex = gl.createTexture();
             const img = new Image();
@@ -24,8 +52,7 @@ export class TextureUtils {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                if (debug) console.log(`[${model.name}] Successfully loaded texture: ${url}`);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                 resolve(tex);
             };
 
@@ -35,18 +62,27 @@ export class TextureUtils {
                 let fallbackColor = [128, 128, 128];
                 
                 if (url.includes('nor')) {
+                    console.info(`[${model.name}] No normal texture`);
                     fallbackColor = [128, 128, 255];
                 } else if (url.includes('rough')) {
+                    console.info(`[${model.name}] No roughness texture`);
                     fallbackColor = [128, 128, 128];
                 } else if (url.includes('met')) {
                     // 0 no metal 
+                    console.info(`[${model.name}] No metal texture`);
                     fallbackColor = [0, 0, 0];
                 } else if (url.includes('disp')) {
                     // 0 disp
+                    console.info(`[${model.name}] No displacement texture`);
                     fallbackColor = [0, 0, 0];
                 } else if (url.includes('ao')) {
                     // ao 1
+                    console.info(`[${model.name}] No ao texture`);
                     fallbackColor = [255, 255, 255]; 
+                } else if (url.includes('emiss')) {
+                    // emissive 0
+                    console.info(`[${model.name}] No emissive texture`);
+                    fallbackColor = [0, 0, 0];
                 }
                 
                 // 1x1 pixel
@@ -68,7 +104,7 @@ export class TextureUtils {
 
     static crossProduct(n, t) {
         if (n.length !== 3 || t.length !== 3) {
-            console.error("Both n and t must be arrays of length 3");
+           return; 
         }
         let b = [];
         for (let j = 0; j < 3; j++) {
@@ -105,10 +141,13 @@ export class TextureUtils {
         return bitangent;
     }
 
-    // shader selected (if init)
+    // shader selected 
     static bindTexture(model, textures = null,  init = false) {
         const gl = model.gl;
-        const tex = model.textures || textures || {};
+        gl.useProgram(model.program);
+      
+        const tex = textures ? textures : model.textures;
+
         const units = [
             { tex: tex.color, uniform: 'albedoMap', unit: 0},
             { tex: tex.normal, uniform: 'normalTex', unit: 1},
@@ -116,6 +155,7 @@ export class TextureUtils {
             { tex: tex.rough, uniform: 'roughnessMap', unit: 3},
             { tex: tex.disp, uniform: 'dispTex', unit: 4},
             { tex: tex.ao, uniform: 'aoMap', unit: 5},
+            { tex: tex.emiss, uniform: 'emissiveMap', unit: 6}
         ];
 
         for (const { tex, uniform, unit } of units) {
@@ -128,11 +168,43 @@ export class TextureUtils {
                 gl.bindTexture(gl.TEXTURE_2D, tex);
                 // set 
                 if (init){
-                    gl.useProgram(model.program);
                     gl.uniform1i(uniformLoc, unit);
                 }
+            } else if (init){
+                console.warn(`[${model.name}] Texture ${uniform} skipped`, tex, uniformLoc);
             }
         }
+    }
+
+
+    static async getTexturesFromGltf(model, json) {
+        
+            const mat = json.materials[matIdx] || {};
+            const pbr = mat.pbrMetallicRoughness || {};
+                
+            console.warn(`[${model.name}] Loading from glTF:`, json);
+            const getTex = async (texInfo) => {
+                try {
+                    const tex = json.textures[texInfo.index];
+                    const img = json.images[tex.source];
+                    const uri = `models/assets/textures/${model.name}/` + img.uri;
+                    const texture = await TextureUtils.loadTextureImage(model, uri);
+                    return texture;
+                } catch (error) {
+                    return await TextureUtils.loadTextureImage(model, 'mock');
+                }
+            };
+
+           const textures = {
+                color: pbr.baseColorTexture ? await getTex(pbr.baseColorTexture) : null,
+                normal: mat.normalTexture ? await getTex(mat.normalTexture) : null,
+                metal: mat.metallicTexture ? await getTex(mat.metallicTexture) : null,
+                rough: mat.roughnessTexture ? await getTex(mat.roughnessTexture) : null,
+                ao: mat.occlusionTexture ? await getTex(mat.occlusionTexture) : null,
+                disp: mat.displacementTexture ? await getTex(mat.displacementTexture) : null
+            };
+
+            return textures;
     }
 
 }

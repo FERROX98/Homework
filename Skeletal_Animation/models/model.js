@@ -58,12 +58,18 @@ export class Model extends BaseModel {
             this.initAnimation();
 
           this.initTextures();
+         
           this.isLoaded = true;
-          console.warn(`[${this.name}] model loaded successfully.`);
+      
+          this.onLoaded();
 
         });
       });
     });
+  }
+
+  onLoaded() {
+      console.warn(`[${this.name}] model loaded successfully.`);
   }
 
   get animationTracks() {
@@ -104,70 +110,27 @@ export class Model extends BaseModel {
 
   selectAnimation(index) {
     if (index < 0 || index >= this.animations.length) {
-      console.warn(`[${this.name}] Invalid animation index: ${index}`);
+      console.warn(`[${this.name}] Invalid animation ${this.animations.length }, index: ${index}`);
       return;
     }
     this.startTime = performance.now();
     this.animationIndexSelected = index;
   }
 
-  // shader selected
+
   createBuffers() {
     const gl = this.gl;
     gl.useProgram(this.program);
+    
+    const attributes = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
+    for (let i = 0; i < attributes; i++) {
+      const attribute = gl.getActiveAttrib(this.program, i);
+      console.log(`[${this.name}] Attribute ${i}:`, attribute.name, attribute.type);
+    }
 
     for (const buffers of this.buffersList) {
+      this.initBuffer(buffers, buffers);
 
-      // Pointer in the shader
-      buffers.vertPosLoc = gl.getAttribLocation(this.program, 'position');
-      if (buffers.vertPosLoc === -1) 
-        console.error(`[${this.name}] No position attribute found in shader.`);  
-      
-      buffers.vertPosBuffer = gl.createBuffer();
-      // set data into global buffer 
-      this.bindAndSetBuffer(buffers.position, buffers.vertPosBuffer);
-      
-      buffers.normalLoc = gl.getAttribLocation(this.program, 'normal');
-      if (buffers.normalLoc !== -1 && buffers.normals != null) {
-        buffers.normalBuffer = gl.createBuffer();
-        this.bindAndSetBuffer(buffers.normals, buffers.normalBuffer);
-      }
-      buffers.tangentLoc = gl.getAttribLocation(this.program, 'tangent');
-      if (buffers.tangentLoc !== -1  && buffers.tangents != null) {
-        buffers.tangentBuffer = gl.createBuffer();
-        this.bindAndSetBuffer(buffers.tangents, buffers.tangentBuffer);
-      }
-      
-      // // check (blender export tangent)
-      // buffers.bitangentLoc = gl.getAttribLocation(this.program, 'bitangent');
-      // if (buffers.bitangentLoc !== -1  && buffers.bitangents != null) {
-      //   buffers.bitangentBuffer = gl.createBuffer();
-      //   this.bindAndSetBuffer(buffers.bitangents, buffers.bitangentBuffer);
-      // }
-      
-      buffers.texCoordLoc = gl.getAttribLocation(this.program, 'textureCoords');
-      const texCoordData = buffers.texCoords;
-      if (buffers.texCoordLoc === -1 && texCoordData) {      
-        buffers.texCoordBuffer = gl.createBuffer();
-        this.bindAndSetBuffer(texCoordData, buffers.texCoordBuffer);
-      }
-
-      buffers.jointLoc = gl.getAttribLocation(this.program, 'joints');
-      if (buffers.joints &&  buffers.jointLoc !== -1) {
-        buffers.jointBuffer = gl.createBuffer();
-        this.bindAndSetBuffer(buffers.joints, buffers.jointBuffer);
-      }
-
-      buffers.weightLoc = gl.getAttribLocation(this.program, 'weights');
-      if (buffers.weights && buffers.weightLoc !== -1) {
-        buffers.weightBuffer = gl.createBuffer();
-        this.bindAndSetBuffer(buffers.weights, buffers.weightBuffer);
-      }
-      
-      // Triangles 
-      buffers.indexBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, buffers.indices, gl.STATIC_DRAW);
     }
   }
 
@@ -195,7 +158,6 @@ export class Model extends BaseModel {
     return this.animationSpeed;
   }
 
-  // shader selected
   render(proj, view, lights, transform = null) {
     if (!this.isLoaded)
       return 0;
@@ -204,34 +166,30 @@ export class Model extends BaseModel {
     gl.useProgram(this.program);
 
     const modelMatrix = transform || this.modelMatrix;
-  
-    // uniform setup
+
     this.onPreDraw(modelMatrix, proj, view, lights, this.uniforms);
-  
+    // if (Math.random() < 0.01)  
+    //   console.log(`[${this.name}] lights:`, lights);
+    
     let triangleCount = 0;
-    this.handleAnimation();
+    if (this.animated)
+      this.handleAnimation();
 
     for (const buffers of this.buffersList) {
       if (this.texturesLoaded)
         TextureUtils.bindTexture(this, buffers.textures);
 
-      this.bindAndEnableBuffers(buffers.vertPosLoc, buffers.vertPosBuffer, 3);
+      this.onDraw(buffers);
+      // this.bindAndEnableBuffers(buffers.vertPosLoc, buffers.vertPosBuffer, 3);
+      // this.bindAndEnableBuffers(buffers.normalLoc, buffers.normalBuffer, 3);
+      // this.bindAndEnableBuffers(buffers.texCoordLoc, buffers.texCoordBuffer, 2);
 
-      // normal 
-      this.bindAndEnableBuffers(buffers.normalLoc, buffers.normalBuffer, 3);
-      if (buffers.tangentLoc !== -1 && buffers.tangentBuffer) {
-        this.bindAndEnableBuffers(buffers.tangentLoc, buffers.tangentBuffer, 3);
-       // this.bindAndEnableBuffers(buffers.bitangentLoc, buffers.bitangentBuffer, 3);
-      }
-      
-      this.bindAndEnableBuffers(buffers.texCoordLoc, buffers.texCoordBuffer, 2);
-
-      if (buffers.jointLoc !== -1 && buffers.jointBuffer) {
-        this.bindAndEnableBuffers(buffers.jointLoc, buffers.jointBuffer, 4);
-      }
-      if (buffers.weightLoc !== -1 && buffers.weightBuffer) {
-        this.bindAndEnableBuffers(buffers.weightLoc, buffers.weightBuffer, 4);
-      }
+      // if (buffers.jointLoc !== -1 && buffers.jointBuffer) {
+      //   this.bindAndEnableBuffers(buffers.jointLoc, buffers.jointBuffer, 4);
+      // }
+      // if (buffers.weightLoc !== -1 && buffers.weightBuffer) {
+      //   this.bindAndEnableBuffers(buffers.weightLoc, buffers.weightBuffer, 4);
+      // }
 
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indexBuffer);
       gl.drawElements(gl.TRIANGLES, buffers.indexCount, gl.UNSIGNED_SHORT, 0);
@@ -242,7 +200,6 @@ export class Model extends BaseModel {
   }
 
   initAnimation() {
-
     if (!this.animations || this.animations.length === 0) {
       return;
     }
