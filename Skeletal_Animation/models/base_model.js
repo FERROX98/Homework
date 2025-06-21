@@ -1,12 +1,13 @@
 
 import { vec3, mat3, mat4, vec4 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
-import { TextureUtils } from './utils/texture_utils.js';
+import { TextureUtils , TextureType} from './utils/texture_utils.js';
 
 const debug = false;
 
 export class BaseModel {
     constructor(gl) {
         this.gl = gl;
+        this.textureMode = TextureType.mod1; 
     }
     
     toggleTextures(enable) {
@@ -197,5 +198,5 @@ export class BaseModel {
 
     dest.indexCount = src.indexCount;
  }
-    
+
 }

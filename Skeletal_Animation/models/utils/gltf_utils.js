@@ -197,7 +197,7 @@ export class GLTFUtils {
             const matIdx = primitive.material;
             const basePath = `models/assets/textures/${model.name}/`;
             const textures = model.loadTexFromGlTF ?
-                            await TextureUtils.getTexturesFromGltf(model, json, matIdx) : await TextureUtils.loadTextures(model, basePath);
+                            await TextureUtils.getTexturesFromGltf(model, json, matIdx) : await TextureUtils.loadTextures(model, basePath, model.textureMode);
 
             model.buffersList.push({
                 positions: position,

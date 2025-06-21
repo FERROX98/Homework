@@ -1,4 +1,4 @@
-import { TextureUtils } from '../models/utils/texture_utils.js';
+import { TextureUtils, TextureType } from '../models/utils/texture_utils.js';
 import * as utils from '../shaders/shader_utils.js';
 import { mat4, mat3 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js';
 import { BaseModel } from '../models/base_model.js';
@@ -12,6 +12,7 @@ export class Ground extends BaseModel {
     this.texturesLoaded = false;
     this.model = mat4.create();
     this.name = 'ground';
+    this.textureMode =  TextureType.mod1;
 
     utils.resolveShaderPaths(this.name).then((shadersPath) => {
       // shader 
@@ -34,6 +35,17 @@ export class Ground extends BaseModel {
       });
     });
   }
+
+  updateTextureMode(mode) {
+    if (this.textureMode === mode) {
+      return;
+    }
+    this.textureMode = mode;
+    this.texture = TextureUtils.loadTextures(this, basePath, mode);
+    TextureUtils.bindTexture(this);
+  }
+
+
 
   initTexture() {
     TextureUtils.bindTexture(this,null, true);

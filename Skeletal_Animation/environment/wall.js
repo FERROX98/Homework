@@ -67,4 +67,10 @@ export class Wall {
     }
     return triangleCount;
   }
+
+  updateTextureMode(mode){
+    for (const model of this.models) {
+      model.updateTextureMode(mode);
+    }
+  }
 }

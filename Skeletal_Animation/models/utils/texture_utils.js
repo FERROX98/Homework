@@ -1,22 +1,27 @@
 import { Model } from "../model.js";
 
-const debug = false;
+// {name: folder}
+export const TextureType = Object.freeze({
+    mod1: {folder: 'mod1', name: 'Mod 1', unit: 0},
+    mod2: {folder: 'mod2', name: 'Mod 2', unit: 1},
+    mod3: {folder: 'mod3', name: 'Mod 3', unit: 2},
+});
 
 export class TextureUtils {
 
-    static async loadTextures(mode, basePath) {
-        const gl = mode.gl;
-        gl.useProgram(mode.program);
+    static async loadTextures(model, basePath, mode = TextureType.mod1) {
+        const gl = model.gl;
+        gl.useProgram(model.program);
+        const modePath = basePath + `/${mode.folder}/`;
 
         const [color, normal, rough, metal, ao, disp, emiss] = await Promise.all([
-            TextureUtils.loadTextureImage(mode, basePath + 'diff.jpg'),
-            TextureUtils.loadTextureImage(mode, basePath + 'nor.jpg'),
-            TextureUtils.loadTextureImage(mode, basePath + 'rough.jpg'),
-            TextureUtils.loadTextureImage(mode, basePath + 'met.jpg'),
-            TextureUtils.loadTextureImage(mode, basePath + 'ao.jpg'),
-            TextureUtils.loadTextureImage(mode, basePath + 'disp.jpg'),
-            TextureUtils.loadTextureImage(mode, basePath + 'emiss.jpg')
-
+            TextureUtils.loadTextureImage(model, modePath + 'diff.jpg'),
+            TextureUtils.loadTextureImage(model, modePath + 'nor.jpg'),
+            TextureUtils.loadTextureImage(model, modePath +'rough.jpg'),
+            TextureUtils.loadTextureImage(model, modePath + 'met.jpg'),
+            TextureUtils.loadTextureImage(model, modePath + 'ao.jpg'),
+            TextureUtils.loadTextureImage(model, modePath + 'disp.jpg'),
+            TextureUtils.loadTextureImage(model, modePath + 'emiss.jpg')
         ]);
 
         return {
@@ -154,9 +159,9 @@ export class TextureUtils {
     static bindTexture(model, textures = null, init = false) {
         const gl = model.gl;
         gl.useProgram(model.program);
-
-        const tex = textures ? textures : model.textures;
-
+    
+        const tex = textures!==null ? textures : model.textures;
+     
         const units = [
             { tex: tex.color, uniform: 'albedoMap', unit: 0 },
             { tex: tex.normal, uniform: 'normalTex', unit: 1 },
@@ -171,13 +176,14 @@ export class TextureUtils {
             const uniformLoc = gl.getUniformLocation(model.program, uniform);
 
             if (uniformLoc !== null && tex) {
+                console.info(`[${model.name}] Texture unit mode ${model.textureMode.unit}`);
                 // activate 
-                gl.activeTexture(gl.TEXTURE0 + unit);
+                gl.activeTexture(gl.TEXTURE0 + unit + model.textureMode.unit);
                 // select 
                 gl.bindTexture(gl.TEXTURE_2D, tex);
                 // set 
                 if (init) {
-                    gl.uniform1i(uniformLoc, unit);
+                    gl.uniform1i(uniformLoc, unit + model.textureMode.unit);
                 }
             } else if (init) {
                 console.warn(`[${model.name}] Texture ${uniform} skipped`, tex, uniformLoc);
@@ -197,8 +203,8 @@ export class TextureUtils {
             try {
              
                 console.info(`[${model.name}] Loading texture:`, img);
-                
-                const uri = `models/assets/textures/${model.name}/` + img.uri;
+                const textureMode = model.textureMode || TextureType.mod1;
+                const uri = `models/assets/textures/${model.name}/${textureMode.folder}/` + img.uri;
                 const texture = await TextureUtils.loadTextureImage(model, uri);
                 return texture;
             } catch (error) {

@@ -3,8 +3,9 @@ import { mat3, mat4, vec3 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/e
 import * as utils from '../shaders/shader_utils.js';
 import { AnimationUtils } from './utils/animation_utils.js';
 import { GLTFUtils } from './utils/gltf_utils.js';
-import { TextureUtils } from './utils/texture_utils.js';
+import { TextureUtils , TextureType } from './utils/texture_utils.js';
 import { BaseModel } from './base_model.js';
+const basePath = 'models/assets/';
 
 const debug = false;
 
@@ -17,6 +18,7 @@ export class Model extends BaseModel {
     this.isVisible = visible;
     this.texturesLoaded = false;
     this.loadTexFromGlTF = loadTexFromGlTF;
+    this.textureMode = TextureType.mod1; 
 
     this.program = null;
     this.isLoaded = false;
@@ -52,7 +54,7 @@ export class Model extends BaseModel {
 
         this.initUniformsLocations();
 
-        GLTFUtils.loadGLTF(this, `models/assets/${modelPath}`).then(() => {
+        GLTFUtils.loadGLTF(this, `models/assets/obj/${modelPath}`).then(() => {
           this.createBuffers();
 
           if (this.animated)
@@ -206,4 +208,16 @@ export class Model extends BaseModel {
 
     AnimationUtils.updateJointMatrices(this);
   }
+  updateTextureMode(mode) {
+    if (this.textureMode === mode) {
+      return;
+    }
+
+    // take the first buffer 
+    const firstBuffer = this.buffersList[0];
+    this.textureMode = mode;
+    firstBuffer.texture = TextureUtils.loadTextures(this, basePath+`texture/${this.modelPath}/`, mode);
+    TextureUtils.bindTexture(this,firstBuffer.textures, true);
+  }
+
 }

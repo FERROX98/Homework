@@ -9,7 +9,7 @@ const debug = false;
 export class Environment {
   constructor(gl, groundSize = 150) {
     this.gl = gl;
-
+    
     this.ground = null;
     this.groundSize = groundSize;
     this.groundCenter = vec3.fromValues(0.0, 0.0, 0.0);
@@ -201,4 +201,14 @@ export class Environment {
     
 
   }
+
+  updateTextureMode(textureMode){
+    if (this.ground) {
+      this.ground.updateTextureMode(textureMode);
+    }
+    if (this.wall) {
+      this.wall.updateTextureMode(textureMode);
+    }
+  }
+
 }

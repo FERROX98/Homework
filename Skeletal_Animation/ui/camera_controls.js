@@ -1,3 +1,4 @@
+import { TextureType } from '../models/utils/texture_utils.js';
 
 export class CameraControls {
   constructor() {
@@ -24,6 +25,7 @@ export class CameraControls {
     this.rotationSpeedValue = document.getElementById("rotation-speed-value");
 
     this.walkAnimationSelector = document.getElementById("walk-animation-selector");
+    this.textureModeSelector = document.getElementById("texture-mode-selector");
 
     // light 
     this.lightXSlider = document.getElementById("light-x-slider");
@@ -51,6 +53,7 @@ export class CameraControls {
     this.characterController = characterController;
     this.environment = environment;
     this.initEventListeners();
+    this.initTextureModeSelector();
 
     this.environment.onModelsUpdated = (() => {
       this.updateObjectsList();
@@ -102,6 +105,12 @@ export class CameraControls {
     this.walkAnimationSelector.addEventListener('change', (e) => {
       const animationType = e.target.value;
       this.updateWalkAnimationType(animationType);
+    });
+
+    // Texture Mode
+    this.textureModeSelector.addEventListener('change', (e) => {
+      const textureMode = e.target.value;
+      this.updateTextureMode(textureMode);
     });
 
     // light
@@ -157,6 +166,28 @@ export class CameraControls {
     });
   }
 
+  initTextureModeSelector() {
+      this.textureModeSelector.innerHTML = '';
+      
+      for (const key of Object.keys(TextureType)) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = TextureType[key].name;
+        if (key === 'mod1') {
+          console.log('TextureType:', TextureType);
+          option.selected = true;
+        }
+        
+        this.textureModeSelector.appendChild(option);
+      }
+      
+      this.textureModeSelector.addEventListener('change', (e) => {
+        const textureMode = e.target.value;
+        this.updateTextureMode(textureMode);
+      });
+    
+  }
+
 
 
   updateControls() {
@@ -202,24 +233,24 @@ export class CameraControls {
   }
 
   resetToDefaults() {
-    if (this.camera) {
-      this.camera.reset();
-      this.camera.moveSpeed = 4.0;
-    }
+    this.camera.reset();
+    this.camera.moveSpeed = 4.0;
 
-    if (this.characterController) {
-      this.characterController.resetSpeed();
+    this.characterController.resetSpeed();
 
-      if (this.walkAnimationSelector) {
-        this.walkAnimationSelector.value = this.characterController.model.currentWalkType || 'normal';
-      }
+    this.walkAnimationSelector.value = this.characterController.model.currentWalkType || 'normal';
+    for (const option of this.textureModeSelector.options) {
+      if (option.textContent === TextureType.mod1.name) {
+      option.selected = true;
+        break;
+      } 
     }
+  
 
     // Light
-    if (this.environment) {
-      this.environment.resetLightPosition();
-      this.environment.setDirectionalLightIntensity(1.0);
-    }
+    this.environment.resetLightPosition();
+    this.environment.setDirectionalLightIntensity(1.0);
+    
 
     this.updateControls();
   }
@@ -257,6 +288,11 @@ export class CameraControls {
   updateWalkAnimationType(animationType) {
     if (!this.characterController) return;
     this.characterController.setWalkAnimationType(animationType);
+  }
+
+  updateTextureMode(textureMode) {
+    console.log(`Updating texture mode to: ${textureMode}`);
+    this.environment.updateTextureMode(TextureType[textureMode]);
   }
 
   updateObjectsList() {
