@@ -119,6 +119,7 @@ export class BaseModel {
     initUniformsLocations() {
         const gl = this.gl;
         const program = this.program;
+
         this.uniforms = {
           projection: gl.getUniformLocation(program, 'projection'),
           view: gl.getUniformLocation(program, 'view'),
@@ -138,8 +139,17 @@ export class BaseModel {
           
           enableHDR: gl.getUniformLocation(program, 'enableHDR'),
           enableAttenuation: gl.getUniformLocation(program, 'enableAttenuation'),
-          attenuationRange: gl.getUniformLocation(program, 'attenuationRange')
+          attenuationRange: gl.getUniformLocation(program, 'attenuationRange'),
+          enableParallaxMap: gl.getUniformLocation(program, 'enableParallaxMap'),
         };
+    }
+
+
+    enableParallaxMap(enable) {
+        const gl = this.gl;
+        gl.useProgram(this.program);
+        console.log(`${this.name}] uniforms` ,this.uniforms)
+        gl.uniform1i(this.uniforms.enableParallaxMap, enable ? 1 : 0);
     }
 
     // shader selected 

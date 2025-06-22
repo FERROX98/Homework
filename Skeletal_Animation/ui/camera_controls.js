@@ -1,4 +1,5 @@
 import { TextureType } from '../models/utils/texture_utils.js';
+import { StaticLoader } from '../ui/static_loader.js'
 
 export class CameraControls {
   constructor() {
@@ -105,12 +106,6 @@ export class CameraControls {
     this.walkAnimationSelector.addEventListener('change', (e) => {
       const animationType = e.target.value;
       this.updateWalkAnimationType(animationType);
-    });
-
-    // Texture Mode
-    this.textureModeSelector.addEventListener('change', (e) => {
-      const textureMode = e.target.value;
-      this.updateTextureMode(textureMode);
     });
 
     // light
@@ -291,8 +286,10 @@ export class CameraControls {
   }
 
   updateTextureMode(textureMode) {
-    console.log(`Updating texture mode to: ${textureMode}`);
-    this.environment.updateTextureMode(TextureType[textureMode]);
+     
+    StaticLoader.doAction(() => {
+        this.environment.updateTextureMode(TextureType[textureMode]);
+    }, 5000); 
   }
 
   updateObjectsList() {

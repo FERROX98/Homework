@@ -14,6 +14,9 @@ uniform bool enableHDR;
 uniform bool enableAttenuation;
 uniform float attenuationRange;
 
+uniform bool enableParallaxMap;
+
+
 const float PI = 3.14159265359;
 
 varying vec2 texCoords;
@@ -92,10 +95,16 @@ void main() {
   vec3 viewDir = normalize(vec3(TangentViewPos - TangentFragPos));
   vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
 
-  vec2 texCoordsDisp = ParallaxMapping(texCoords, viewDir);
-  if(texCoordsDisp.x > 1.0 || texCoordsDisp.y > 1.0 || texCoordsDisp.x < 0.0 || texCoordsDisp.y < 0.0) {
-    gl_FragColor = vec4(0.32, 0.32, 0.32, 0.0);
-    return;
+  vec2 texCoordsDisp; 
+  if (enableParallaxMap) {
+    
+    texCoordsDisp = ParallaxMapping(texCoords, viewDir);
+    if(texCoordsDisp.x > 1.0 || texCoordsDisp.y > 1.0 || texCoordsDisp.x < 0.0 || texCoordsDisp.y < 0.0) {
+        gl_FragColor = vec4(0.32, 0.32, 0.32, 0.0);
+        return;
+    }
+  } else {
+      texCoordsDisp = texCoords;
   }
 
   // from RGBs to linear space

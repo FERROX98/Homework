@@ -40,9 +40,15 @@ export class Ground extends BaseModel {
     if (this.textureMode === mode) {
       return;
     }
+    TextureUtils.unbindTexture(this);
+
     this.textureMode = mode;
-    this.texture = TextureUtils.loadTextures(this, basePath, mode);
-    TextureUtils.bindTexture(this);
+    TextureUtils.loadTextures(this, basePath, mode).then((textures) => {
+          this.textures = textures;
+          
+          TextureUtils.bindTexture(this, this.textures, true);
+          
+    });
   }
 
 

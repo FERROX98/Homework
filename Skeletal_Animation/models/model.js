@@ -213,11 +213,19 @@ export class Model extends BaseModel {
       return;
     }
 
-    // take the first buffer 
-    const firstBuffer = this.buffersList[0];
+    // TODO if is cached select directly no unbind 
+    TextureUtils.unbindTexture(this);
     this.textureMode = mode;
-    firstBuffer.texture = TextureUtils.loadTextures(this, basePath+`texture/${this.modelPath}/`, mode);
-    TextureUtils.bindTexture(this,firstBuffer.textures, true);
+    
+    // take the first buffer because i merge all primitives in one on blender (excluded chair)
+    const firstBuffer = this.buffersList[0];
+    
+    TextureUtils.loadTextures(this, basePath+`textures/${this.name}/`, mode).then(textures => {
+        firstBuffer.textures = textures;
+                
+        TextureUtils.bindTexture(this, textures, true);
+        
+    });
   }
 
 }

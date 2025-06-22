@@ -44,6 +44,7 @@ export class Environment {
     this.attenuationEnabled = true;
 
     this.updateLightDirection();
+
     this.init();
   } 
 

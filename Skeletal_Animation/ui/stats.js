@@ -13,6 +13,7 @@ export class Stats {
     this.minimizedView = document.getElementById('minimized-view');
     this.container = document.getElementById('stats-container');
 
+
     this.setEventsHandler();
   }
 

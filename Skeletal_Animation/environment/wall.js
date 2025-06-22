@@ -30,7 +30,7 @@ export class Wall {
     let loadedCount = 0;
 
     for (const config of configs) {
-      const model = new Model(this.gl, this.modelPath);
+      const model = new Model(this.gl, this.modelPath, false, true, false);
       this.models.push(model);
 
       const modelMatrix = mat4.create();
