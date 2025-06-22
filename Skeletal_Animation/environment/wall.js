@@ -21,10 +21,10 @@ export class Wall {
     const wallLength = size + wallDepth;
 
     const configs = [
-      { translation: [0, 0, size + wallDepth], rotationY: 0, scale: [wallLength + 2, wallHeight, wallDepth] },
-      { translation: [0, 0, -size - wallDepth], rotationY: 0, scale: [wallLength + 2, wallHeight, wallDepth] },
-      { translation: [size + wallDepth, 0, 0], rotationY: Math.PI / 2, scale: [wallLength + 2, wallHeight, wallDepth] },
-      { translation: [-size - wallDepth, 0, 0], rotationY: Math.PI / 2, scale: [wallLength + 2, wallHeight, wallDepth] },
+      { translation: [0, 0, size + wallDepth], rotationY: 0, scale: [wallLength , wallHeight, wallDepth] },
+      { translation: [0, 0, -size - wallDepth], rotationY: 0, scale: [wallLength , wallHeight, wallDepth] },
+      { translation: [size + wallDepth, 0, 0], rotationY: Math.PI / 2, scale: [wallLength, wallHeight, wallDepth] },
+      { translation: [-size - wallDepth, 0, 0], rotationY: Math.PI / 2, scale: [wallLength, wallHeight, wallDepth] },
     ];
 
     let loadedCount = 0;

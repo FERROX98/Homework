@@ -249,14 +249,11 @@ export class AnimationUtils {
       return false;
     }
 
-
-
     // check switccg
     if (model.animationLength > 0 && t >= model.animationLength) {
       const switched = model.switchAnimation();
       if (switched) {
 
-        
         let now = performance.now();
         let elapsedSeconds = (now - model.startTime) / 1000;
         let animTime = elapsedSeconds * model.getAnimationSpeed();

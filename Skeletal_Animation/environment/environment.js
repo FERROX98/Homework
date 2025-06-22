@@ -207,9 +207,9 @@ export class Environment {
     if (this.ground) {
       this.ground.updateTextureMode(textureMode);
     }
-    if (this.wall) {
-      this.wall.updateTextureMode(textureMode);
-    }
+   // if (this.wall) {
+   //   this.wall.updateTextureMode(textureMode);
+   // }
   }
 
 }

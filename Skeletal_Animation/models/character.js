@@ -38,7 +38,7 @@ export class Character extends Model {
   setStartAnimationWalk(forward = true) {
     this.isMovingForward = forward;
     this.isMovingBackward = !forward;
-    this.resetAllAnimationObjects();
+   // this.resetAllAnimationObjects();
 
 
     if (forward) {
@@ -57,7 +57,7 @@ export class Character extends Model {
       return;
     this.isMovingForward = false
     this.isMovingBackward = false;
-    this.resetAllAnimationObjects();
+    //this.resetAllAnimationObjects();
 
     if (forward) {
       const walkKey = CharacterAnimations.getWalkAnimationKeys(this.currentWalkType).end;
@@ -78,7 +78,7 @@ export class Character extends Model {
   switchAnimation() {
 
     const switched = this.currentAnimation.next ? true : false;
-    if (this.currentAnimation.next === 'Idle') 
+    if (this.currentAnimation  && this.currentAnimation.name === 'StandToSitRev') 
           this.resetAllAnimationObjects();
 
     if (this.currentAnimation.next) {
@@ -107,7 +107,8 @@ export class Character extends Model {
   }
 
   setAnimation(animationName) {
-
+    if (this.currentAnimation  && this.currentAnimation.name == 'StandToSitRev' )
+      this.resetAllAnimationObjects();
 
     this.currentAnimation = CharacterAnimations.getAnimationByName(animationName);
     if (!this.currentAnimation) {

@@ -143,8 +143,6 @@ export class Model extends BaseModel {
       && this.animationIndexSelected !== null
       && this.animationTracks.size > 0) {
 
-
-
       if (!this.startTime) {
         this.startTime = performance.now();
       }

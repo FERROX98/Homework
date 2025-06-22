@@ -49,8 +49,8 @@ void main() {
   // from RGBs to linear space
   vec3 albedo = pow(texture2D(albedoMap, texCoords).rgb, vec3(2.2));
   vec3 normalMap = texture2D(normalTex, texCoords).rgb;
-  float metallic = clamp(texture2D(metallicMap, texCoords).r, 5.5, 6.0); // 6.0
-  float roughness = clamp(texture2D(roughnessMap, texCoords).r, 0.8, 1.5); //0.3
+  float metallic = clamp(texture2D(metallicMap, texCoords).r, 5.2, 5.9); // 6.0
+  float roughness = clamp(texture2D(roughnessMap, texCoords).r, 0.7, 1.4); //0.3
 
   normalMap = normalize(normalMap * 2.0 - 1.0);
   vec3 N = normalize(vNormal + normalMap * 0.02);
