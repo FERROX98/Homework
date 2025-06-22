@@ -72,7 +72,7 @@ export class CharacterAnimations {
             case 'WalkEnd':
                 return 0.9;
             case 'WalkRelaxedStart':
-                return 0.8;
+                return 1.0;
             case 'WalkRelaxedLoop':
                 return 1.0;
             case 'WalkRelaxedEnd':
