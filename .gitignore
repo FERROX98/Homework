@@ -10,6 +10,9 @@ Skeletal_Animation/models/assets/textures/*
 !Skeletal_Animation/models/assets/textures/wall/
 !Skeletal_Animation/models/assets/textures/rb5/
 !Skeletal_Animation/models/assets/textures/sun/
+!Skeletal_Animation/models/assets/textures/pointLight/
+!Skeletal_Animation/models/assets/textures/chesterfieldarmchair
+
 
 dist/*
 !dist/
