@@ -15,7 +15,6 @@ export class Character extends Model {
     this.isMovingForward = false;
     this.isMovingBackward = false;
     this.animationSpeed = 1; 
-   
 
     this.currentWalkType = 'normal';
   }

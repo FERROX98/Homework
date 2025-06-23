@@ -1,4 +1,4 @@
-# Ignora tutto dentro assets tranne .gltf e .bin
+
 Skeletal_Animation/models/assets/*
 !Skeletal_Animation/models/assets/obj
 !Skeletal_Animation/models/assets/**/*.gltf
