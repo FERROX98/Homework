@@ -10,7 +10,11 @@ export class Renderer {
 
     this.stats = new Stats();
     this.camera = new Camera(canvas);
+
+    this.targetFPS = 61; 
+    this.frameInterval = 1000 / this.targetFPS; 
     this.characterController = null;
+    this.lastFrameTime = 0; 
   }
 
   resizeCanvasToDisplaySize() {
@@ -31,6 +35,15 @@ export class Renderer {
   render(time) {
     const gl = this.gl;
     const env = this.env;
+    // start 0 
+    // elapsed 20 ms instead of 16.67 
+    const elapsed = time - this.lastFrameTime;
+    if (elapsed < this.frameInterval) {
+      requestAnimationFrame((t) => this.render(t));
+      return;
+    }
+    // 20 - surplus 3 ms to keep stable
+    this.lastFrameTime = time - (elapsed % this.frameInterval);
 
     this.resizeCanvasToDisplaySize();
 

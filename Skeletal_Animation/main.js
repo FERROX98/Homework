@@ -1,5 +1,5 @@
 import { Environment } from "./environment/environment.js";
-import * as Render from "./animation/renders.js";
+import { Renderer }   from "./animation/renders.js";
 import { Model } from "./models/model.js";
 import { CharacterController } from "./controllers/character_controller.js";
 import { Character } from "./models/character.js";
@@ -28,13 +28,13 @@ export class Main {
       //  let manson = new Model(gl, "tmp/mansion_low.gltf", false, true);
       // env.addModel(manson, [0, 13.5, 0], [0, 0, 0], [20, 20, 20]);
       let rb1 = new Character(gl, "rb5.gltf", true, true, false);
-      let renderer = new Render.Renderer(gl, canvas, env);
+      let renderer = new Renderer(gl, canvas, env);
       StaticLoader.doAction(() => {
         self.setupCharacterController(rb1, renderer, env);
       });
 
       // Start rendering
-      renderer.render();
+      requestAnimationFrame((t) => renderer.render(t));
     };
   }
 

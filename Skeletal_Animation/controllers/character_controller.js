@@ -42,7 +42,10 @@ export class CharacterController {
     // Movement e Animation walk fp 
     this.animationSpeedMultiplier = 13;
     this.normalizationFactor = (moveSpeed) =>  ( 0.8* Math.exp(-moveSpeed)); 
-    this.initSpeedModel(0.22, 0.15);
+    this.minRotationSpeed = 0.01;
+    this.maxRotationSpeed = 0.2;
+
+    this.initSpeedModel(0.22, 0.07);
     
 
     this.isMoving = false;
@@ -76,7 +79,7 @@ export class CharacterController {
     this.setWalkAnimationType('normal');
   }
 
-  initSpeedModel(moveSpeed = 0.13, rotationSpeed = 0.2) {
+  initSpeedModel(moveSpeed = 0.13, rotationSpeed = 0.05) {
     if (this.model) {
       this.model.animationSpeed = moveSpeed * this.animationSpeedMultiplier * this.normalizationFactor(moveSpeed);
       this.rotationSpeed = rotationSpeed;
@@ -292,7 +295,7 @@ export class CharacterController {
     }
 
     if (this.keys.a || this.keys.arrowleft) {
-      this.rotation += this.rotationSpeed
+      this.rotation += this.rotationSpeed;
       if (this.camera.isFirstPerson) {
         this.camera.firstPersonRotation = this.rotation;
       }

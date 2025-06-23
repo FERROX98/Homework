@@ -199,10 +199,12 @@ export class CameraControls {
     this.speedSlider.value = displaySpeed;
     this.speedValue.textContent = displaySpeed.toFixed(2);
 
-    //rotatiomn
-    const displayRotationSpeed = this.characterController.rotationSpeed;
-    this.rotationSpeedSlider.value = displayRotationSpeed;
-    this.rotationSpeedValue.textContent = displayRotationSpeed.toFixed(2);
+    const actualRotationSpeed = this.characterController.rotationSpeed;
+    let normalizedValue = Math.sqrt(Math.max(0, (actualRotationSpeed - this.characterController.minRotationSpeed) / this.characterController.maxRotationSpeed));
+    normalizedValue = Math.max(0, Math.min(1, normalizedValue));
+    
+    this.rotationSpeedSlider.value = normalizedValue;
+    this.rotationSpeedValue.textContent = normalizedValue.toFixed(2);
 
     // light
     const lightPosition = this.environment.lightPosition;
@@ -232,16 +234,17 @@ export class CameraControls {
     this.camera.moveSpeed = 4.0;
 
     this.characterController.resetSpeed();
+    
+
 
     this.walkAnimationSelector.value = this.characterController.model.currentWalkType || 'normal';
     for (const option of this.textureModeSelector.options) {
       if (option.textContent === TextureType.mod1.name) {
-      option.selected = true;
+        option.selected = true;
         break;
       } 
     }
   
-
     // Light
     this.environment.resetLightPosition();
     this.environment.setDirectionalLightIntensity(1.0);
@@ -398,8 +401,11 @@ export class CameraControls {
     }
   }
 
-  updateRotationSpeed(normalizedRotationSpeed) {
+  updateRotationSpeed(displaySpeed) {
     if (!this.characterController) return;
-    this.characterController.rotationSpeed = normalizedRotationSpeed * 0.8;
+
+    let adjustedValue = (displaySpeed * (this.characterController.maxRotationSpeed-this.characterController.minRotationSpeed)) + this.characterController.minRotationSpeed;
+    
+    this.characterController.rotationSpeed = adjustedValue;
   }
 }
