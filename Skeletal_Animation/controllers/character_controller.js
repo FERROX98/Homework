@@ -45,7 +45,7 @@ export class CharacterController {
     this.minRotationSpeed = 0.01;
     this.maxRotationSpeed = 0.2;
 
-    this.initSpeedModel(0.22, 0.07);
+    this.initSpeedModel(0.22, 0.0669);
     
 
     this.isMoving = false;

@@ -200,9 +200,7 @@ export class CameraControls {
     this.speedValue.textContent = displaySpeed.toFixed(2);
 
     const actualRotationSpeed = this.characterController.rotationSpeed;
-    let normalizedValue = Math.sqrt(Math.max(0, (actualRotationSpeed - this.characterController.minRotationSpeed) / this.characterController.maxRotationSpeed));
-    normalizedValue = Math.max(0, Math.min(1, normalizedValue));
-    
+    let normalizedValue = (actualRotationSpeed - this.characterController.minRotationSpeed )/ (this.characterController.maxRotationSpeed-this.characterController.minRotationSpeed);
     this.rotationSpeedSlider.value = normalizedValue;
     this.rotationSpeedValue.textContent = normalizedValue.toFixed(2);
 
@@ -405,7 +403,6 @@ export class CameraControls {
     if (!this.characterController) return;
 
     let adjustedValue = (displaySpeed * (this.characterController.maxRotationSpeed-this.characterController.minRotationSpeed)) + this.characterController.minRotationSpeed;
-    
     this.characterController.rotationSpeed = adjustedValue;
   }
 }
