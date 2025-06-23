@@ -3,6 +3,7 @@ import { Model } from "../model.js";
 // {name: folder}
 export const TextureType = Object.freeze({
     mod1: { folder: 'mod1', name: 'Tiles 1', unit: 0 },
+
     mod2: { folder: 'mod2', name: 'Tiles 2', unit: 1 },
     mod3: { folder: 'mod3', name: 'Wood', unit: 2 },
     mod4: { folder: 'mod4', name: 'Soft', unit: 3 },
@@ -12,6 +13,7 @@ export const TextureType = Object.freeze({
     mod8: { folder: 'mod8', name: 'Tiles 3', unit: 7 },
     mod9: { folder: 'mod9', name: 'Metal 2', unit: 8 },
     mod10: { folder: 'mod10', name: 'Mod 10', unit: 9 },
+    mod11: { folder: 'mod1', name: 'Feather', unit: 10},
 });
 
 export class TextureUtils {
