@@ -6,7 +6,7 @@ export const walkAnimations = [
     { name: 'WalkRelaxedEnd', index: 2, next: 'Idle', waitBefore: 0, waitAfter: 2000    , show: true },
     { name: 'WalkRelaxedLoop', index: 3, next: null, waitBefore: 0, waitAfter: 0, show: true },
     { name: 'WalkRevRelaxedLoop', index: 5, next: null, waitBefore: 1000, waitAfter: 0, show: true },
-    { name: 'WalkRevRelaxedStart', index: 6, next: 'WalkRevRelaxedLoop', waitBefore: 5000, waitAfter: 0, show: true },
+    { name: 'WalkRevRelaxedStart', index: 6, next: 'WalkRevRelaxedLoop', waitBefore: 400, waitAfter: 0, show: true },
     { name: 'WalkLoop', index: 7, next: null, waitBefore: 0, waitAfter: 0, show: true },
     { name: 'WalkRevLoop', index: 8, next: null, waitBefore: 0, waitAfter: 0, show: true },
     { name: 'WalkRevRelaxedEnd', index: 11, next: 'Idle', waitBefore: 0, waitAfter: 6000, show: true },
@@ -72,7 +72,7 @@ export class CharacterAnimations {
             case 'WalkEnd':
                 return 0.9;
             case 'WalkRelaxedStart':
-                return 1.0;
+                return 1.2;
             case 'WalkRelaxedLoop':
                 return 1.0;
             case 'WalkRelaxedEnd':
